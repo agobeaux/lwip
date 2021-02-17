@@ -176,6 +176,28 @@ set(lwiphttp_SRCS
     ${LWIP_DIR}/src/apps/http/httpd.c
 )
 
+# MY LITTLE WEBSERVER
+set(webserverupdated_SRCS
+    ${LWIP_DIR}/src/apps/webserver/webserverupdated.c
+)
+
+#TCP ECHO SERVER
+set(tcpechoserver_SRCS
+    ${LWIP_DIR}/src/apps/tcpechoserver/tcpechoserver.c
+)
+
+# ADD UBPF SOURCE!!!!
+FIND_LIBRARY(UBPF ubpf PATH ${LWIP_DIR}/ubpf/vm)
+MESSAGE(STATUS "Found ubpf at : ${UBPF} " )
+
+SET(UBPF_LIBRARY_FILES
+    ${LWIP_DIR}/ubpf/vm/ubpf.c
+)
+
+ADD_LIBRARY(ubpf-library 
+    ${UBPF_LIBRARY_FILES}
+)
+
 # MAKEFSDATA HTTP server host utility
 set(lwipmakefsdata_SRCS
     ${LWIP_DIR}/src/apps/http/makefsdata/makefsdata.c
@@ -274,17 +296,21 @@ else (DOXYGEN_FOUND)
 endif (DOXYGEN_FOUND)
 
 # lwIP libraries
+
 add_library(lwipcore EXCLUDE_FROM_ALL ${lwipnoapps_SRCS})
 target_compile_options(lwipcore PRIVATE ${LWIP_COMPILER_FLAGS})
 target_compile_definitions(lwipcore PRIVATE ${LWIP_DEFINITIONS}  ${LWIP_MBEDTLS_DEFINITIONS})
 target_include_directories(lwipcore PRIVATE ${LWIP_INCLUDE_DIRS} ${LWIP_MBEDTLS_INCLUDE_DIRS})
+target_link_libraries(lwipcore ubpf-library m ${UBPF})
 
 add_library(lwipallapps EXCLUDE_FROM_ALL ${lwipallapps_SRCS})
 target_compile_options(lwipallapps PRIVATE ${LWIP_COMPILER_FLAGS})
 target_compile_definitions(lwipallapps PRIVATE ${LWIP_DEFINITIONS}  ${LWIP_MBEDTLS_DEFINITIONS})
 target_include_directories(lwipallapps PRIVATE ${LWIP_INCLUDE_DIRS} ${LWIP_MBEDTLS_INCLUDE_DIRS})
+target_link_libraries(lwipallapps ubpf-library m ${UBPF})
 
 add_library(lwipmbedtls EXCLUDE_FROM_ALL ${lwipmbedtls_SRCS})
 target_compile_options(lwipmbedtls PRIVATE ${LWIP_COMPILER_FLAGS})
 target_compile_definitions(lwipmbedtls PRIVATE ${LWIP_DEFINITIONS}  ${LWIP_MBEDTLS_DEFINITIONS})
 target_include_directories(lwipmbedtls PRIVATE ${LWIP_INCLUDE_DIRS} ${LWIP_MBEDTLS_INCLUDE_DIRS})
+target_link_libraries(lwipmbedtls ubpf-library m ${UBPF})

@@ -61,7 +61,8 @@ LWIPDIR?=$(CONTRIBDIR)/..
 CFLAGS+=-I. \
 	-I$(CONTRIBDIR) \
 	-I$(LWIPDIR)/include \
-	-I$(LWIPARCH)/include
+	-I$(LWIPARCH)/include \
+	-I$(LWIPDIR)/../ubpf/vm
 
 # Add include path and link to mbedTLS lib if available
 MBEDTLSDIR?=$(LWIPDIR)/../mbedtls

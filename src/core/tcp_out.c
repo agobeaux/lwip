@@ -78,6 +78,10 @@
 #include "lwip/sys.h"
 #endif
 
+/* UBPF INCLUDE */
+#include "../../ubpf/vm/ubpf.h"
+/* not needed as it is linked? */
+
 #include <string.h>
 
 #ifdef LWIP_HOOK_FILENAME
@@ -1244,6 +1248,8 @@ tcp_output(struct tcp_pcb *pcb)
 #if TCP_CWND_DEBUG
   s16_t i = 0;
 #endif /* TCP_CWND_DEBUG */
+  printf("Coucou, je print un message avant de tcp_output!\n"); fflush(NULL);
+  run_ubpf();
 
   LWIP_ASSERT_CORE_LOCKED();
 

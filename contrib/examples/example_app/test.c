@@ -88,6 +88,10 @@
 
 #include "default_netif.h"
 
+/* UBPF INCLUDE */
+#include "../../../ubpf/vm/ubpf.h"
+/* linked with other libraries, LWIPFILES */
+
 #if NO_SYS
 /* ... then we need information about the timer intervals: */
 #include "lwip/ip4_frag.h"
@@ -343,11 +347,19 @@ test_netif_init(void)
 #endif /* PPPOS_SUPPORT */
 #endif  /* USE_PPP */
 
+printf("heyhey, trying\n");
+run_ubpf();
+/* TODO: if I delete previous line, tcp_out.c does not compile, 
+         even if I let the include of library
+*/
+
 #if USE_ETHERNET
 #if LWIP_IPV4
   ip4_addr_set_zero(&gw);
   ip4_addr_set_zero(&ipaddr);
   ip4_addr_set_zero(&netmask);
+  ipaddr.addr = 0x0201A8C0UL; /* address 192.168.1.2 */
+  netmask.addr = 0X00FFFFFFUL;
 #if USE_ETHERNET_TCPIP
 #if USE_DHCP
   printf("Starting lwIP, local interface IP is dhcp-enabled\n");
@@ -765,6 +777,7 @@ int main(void)
 /* This function is only required to prevent arch.h including stdio.h
  * (which it does if LWIP_PLATFORM_ASSERT is undefined)
  */
+/* retiré pour compiler, j'ai retiré l'appel de cette fonction dans lwipopts.h */
 void lwip_example_app_platform_assert(const char *msg, int line, const char *file)
 {
   printf("Assertion \"%s\" failed at line %d in %s\n", msg, line, file);
