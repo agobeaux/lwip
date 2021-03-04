@@ -38,12 +38,13 @@ if(EXISTS ${LWIP_MBEDTLSDIR}/CMakeLists.txt)
     )
 endif()
 
+# TODO: FIX: pendantic should only be canceled for the ubpf part...
 set(LWIP_COMPILER_FLAGS_GNU_CLANG
     $<$<CONFIG:Debug>:-Og>
     $<$<CONFIG:Debug>:-g>
     $<$<CONFIG:Release>:-O3>
     -Wall
-    -pedantic
+    #-pedantic
     -Werror
     -Wparentheses
     -Wsequence-point

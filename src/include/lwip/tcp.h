@@ -284,7 +284,8 @@ struct tcp_pcb {
   tcpwnd_size_t rcv_wnd;   /* receiver window available */
   tcpwnd_size_t rcv_ann_wnd; /* receiver window to announce */
   u32_t rcv_ann_right_edge; /* announced right edge of window */
-
+  u8_t num_rcv_unacked; /* number of unacked segments received, useful for delayed ack */
+  /* NOTE: no need to initialize members to 0, already done line 1898 (calloc) in tcp.c */
 #if LWIP_TCP_SACK_OUT
   /* SACK ranges to include in ACK packets (entry is invalid if left==right) */
   struct tcp_sack_range rcv_sacks[LWIP_TCP_MAX_SACK_NUM];

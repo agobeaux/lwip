@@ -348,7 +348,7 @@ test_netif_init(void)
 #endif  /* USE_PPP */
 
 printf("heyhey, trying\n");
-run_ubpf();
+/*run_ubpf();*/
 /* TODO: if I delete previous line, tcp_out.c does not compile, 
          even if I let the include of library
 */
@@ -358,7 +358,7 @@ run_ubpf();
   ip4_addr_set_zero(&gw);
   ip4_addr_set_zero(&ipaddr);
   ip4_addr_set_zero(&netmask);
-  ipaddr.addr = 0x0201A8C0UL; /* address 192.168.1.2 */
+  ipaddr.addr = 0x0301A8C0UL; /* address 192.168.1.3 */
   netmask.addr = 0X00FFFFFFUL;
 #if USE_ETHERNET_TCPIP
 #if USE_DHCP

@@ -79,8 +79,8 @@
 #endif
 
 /* UBPF INCLUDE */
-#include "../../ubpf/vm/ubpf.h"
-/* not needed as it is linked? */
+#include "../../ubpf/vm/ubpf.h" /* TODO: change, include in CMake file in directories -> easy path */
+/* not needed as it is linked? Still needed, u know why */
 
 #include <string.h>
 
@@ -1248,8 +1248,8 @@ tcp_output(struct tcp_pcb *pcb)
 #if TCP_CWND_DEBUG
   s16_t i = 0;
 #endif /* TCP_CWND_DEBUG */
-  printf("Coucou, je print un message avant de tcp_output!\n"); fflush(NULL);
-  run_ubpf();
+  /* TODO: delete: printf("Coucou, je print un message avant de tcp_output!\n"); fflush(NULL); */
+  /*run_ubpf();*/
 
   LWIP_ASSERT_CORE_LOCKED();
 
@@ -1281,7 +1281,14 @@ tcp_output(struct tcp_pcb *pcb)
     /* If the TF_ACK_NOW flag is set and the ->unsent queue is empty, construct
      * an empty ACK segment and send it. */
     if (pcb->flags & TF_ACK_NOW) {
-      return tcp_send_empty_ack(pcb);
+      err = tcp_send_empty_ack(pcb);
+      if (err == ERR_OK) {
+        pcb->num_rcv_unacked = 0; /* Reset the numbers of received packets that were not acked */
+      }
+      /* TODO: fix: We take care of whether the segment could be sent or not -> not done in tcp_fasttmr()
+       *       in tcp_fasttmr() we reset the flags anyway... This change does not respect this decision
+       */
+      return err;
     }
     /* nothing to send: shortcut out of here */
     goto output_done;
@@ -1323,7 +1330,11 @@ tcp_output(struct tcp_pcb *pcb)
     }
     /* We need an ACK, but can't send data now, so send an empty ACK */
     if (pcb->flags & TF_ACK_NOW) {
-      return tcp_send_empty_ack(pcb);
+      err = tcp_send_empty_ack(pcb);
+      if (err == ERR_OK) {
+        pcb->num_rcv_unacked = 0; /* Reset the numbers of received packets that were not acked */
+      }
+      return err;
     }
     goto output_done;
   }
@@ -1369,6 +1380,8 @@ tcp_output(struct tcp_pcb *pcb)
       /* segment could not be sent, for whatever reason */
       tcp_set_flags(pcb, TF_NAGLEMEMERR);
       return err;
+    } else {
+      pcb->num_rcv_unacked = 0; /* Reset the numbers of received packets that were not acked */
     }
 #if TCP_OVERSIZE_DBGCHECK
     seg->oversize_left = 0;

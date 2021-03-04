@@ -50,6 +50,7 @@
 #include "lwip/ip6.h"
 #include "lwip/ip6_addr.h"
 #include "lwip/prot/tcp.h"
+#include "../../../../ubpf/vm/ubpf.h" /* TODO: change, include in CMake file in directories -> easy path */
 
 #ifdef __cplusplus
 extern "C" {
@@ -442,16 +443,45 @@ void tcp_segs_free(struct tcp_seg *seg);
 void tcp_seg_free(struct tcp_seg *seg);
 struct tcp_seg *tcp_seg_copy(struct tcp_seg *seg);
 
+/* if is_ack_needed: use the VM (or not if no plugins) */
+/* line before change: if((pcb)->flags & TF_ACK_DELAY) {              \ */
+/* should now be sth like if(exec_loaded_code(popst->replace, (void *)pcb, is_ack_needed()) { */
 #define tcp_ack(pcb)                               \
   do {                                             \
-    if((pcb)->flags & TF_ACK_DELAY) {              \
+    printf("This is pcb num_rcv_unacked: %u\n", pcb->num_rcv_unacked); \
+    if(run_ubpf(pcb) > 0) {              \
+      printf("I should send this packet now!!\n"); \
       tcp_clear_flags(pcb, TF_ACK_DELAY);          \
       tcp_ack_now(pcb);                            \
     }                                              \
     else {                                         \
+      printf("I won't send this packet now\n");    \
+      pcb->num_rcv_unacked++;                      \
+      printf("This is pcb num_rcv_unacked increased: %u\n", pcb->num_rcv_unacked); \
       tcp_set_flags(pcb, TF_ACK_DELAY);            \
     }                                              \
   } while (0)
+
+
+
+/* OLD DEFINITION */
+/*
+#define tcp_ack(pcb)                               \
+  do {                                             \
+    printf("This is pcb snd_nxt: %u\n", pcb->snd_nxt); \
+    printf("This is pcb rcv_nxt: %u\n", pcb->rcv_nxt); \
+    printf("This is pcb lastack: %u\n", pcb->lastack); \
+    if((pcb)->flags & TF_ACK_DELAY) {              \
+      printf("I should send this packet now!!\n"); \
+      tcp_clear_flags(pcb, TF_ACK_DELAY);          \
+      tcp_ack_now(pcb);                            \
+    }                                              \
+    else {                                         \
+      printf("I won't send this packet now\n");    \
+      tcp_set_flags(pcb, TF_ACK_DELAY);            \
+    }                                              \
+  } while (0)
+*/
 
 #define tcp_ack_now(pcb)                           \
   tcp_set_flags(pcb, TF_ACK_NOW)
