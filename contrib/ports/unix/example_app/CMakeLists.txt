@@ -1,6 +1,7 @@
 include(${LWIP_DIR}/contrib/ports/CMakeCommon.cmake)
 
 set (LWIP_INCLUDE_DIRS
+    "${LWIP_DIR}/ubpf"
     "${LWIP_DIR}/src/include"
     "${LWIP_DIR}/contrib/"
     "${LWIP_DIR}/contrib/ports/unix/port/include"

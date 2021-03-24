@@ -49,9 +49,15 @@ static void usage(const char *name)
 }
 */
 
+
+int ebpf_is_ack_needed(struct tcp_pcb *pcb) {
+    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/is_ack_needed.bpf";
+    return run_ubpf(code_filename, pcb);
+}
+
 /* TODO: change, should return protoop_arg_t, a custom type to return meaningful values */
 /* TODO: split this function, have a load part, exec part etc */
-int run_ubpf(struct tcp_pcb *pcb)
+int run_ubpf(const char *code_filename, struct tcp_pcb *pcb)
 {
     /*
     struct option longopts[] = {
@@ -96,7 +102,9 @@ int run_ubpf(struct tcp_pcb *pcb)
 
     /* hard-coded file */
     /* const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/test2.bpf"; */
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/is_ack_needed.bpf";
+    /*
+        const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/is_ack_needed.bpf";
+    */
     size_t code_len;
     void *code;
     

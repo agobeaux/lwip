@@ -449,7 +449,7 @@ struct tcp_seg *tcp_seg_copy(struct tcp_seg *seg);
 #define tcp_ack(pcb)                               \
   do {                                             \
     printf("This is pcb num_rcv_unacked: %u\n", pcb->num_rcv_unacked); \
-    if(run_ubpf(pcb) > 0) {              \
+    if(ebpf_is_ack_needed(pcb) > 0) {              \
       printf("I should send this packet now!!\n"); \
       tcp_clear_flags(pcb, TF_ACK_DELAY);          \
       tcp_ack_now(pcb);                            \

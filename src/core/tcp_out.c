@@ -79,7 +79,7 @@
 #endif
 
 /* UBPF INCLUDE */
-#include "../../ubpf/vm/ubpf.h" /* TODO: change, include in CMake file in directories -> easy path */
+#include "vm/ubpf.h" /* TODO: change, include in CMake file in directories -> easy path */
 /* not needed as it is linked? Still needed, u know why */
 
 #include <string.h>

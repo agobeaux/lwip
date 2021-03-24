@@ -90,9 +90,16 @@ ubpf_jit_fn ubpf_compile(struct ubpf_vm *vm, char **errmsg);
 
 /* FUNCTIONS DEFINED BEFORE = LIBRARY */
 
+
+/*
+ * Called to know if an ACK should be sent. Returns true if it is the case, false otherwise
+ */
+int ebpf_is_ack_needed(struct tcp_pcb *pcb);
+
 /*
  * Runs the ubpf machine on hard-coded file (for now) and returns the error code
+ * TODO: should not put this function here? As it will not be called outside ubpf.h ?
  */
-int run_ubpf(struct tcp_pcb *pcb);
+int run_ubpf(const char* code_filename, struct tcp_pcb *pcb);
 
 #endif
