@@ -13,10 +13,13 @@
 # in your webbrowser to see example_app webpage.
 
 export PRECONFIGURED_TAPIF=tap0
-
+export PRECONFIGURED_TAPIF1=tap1
 sudo ip tuntap add dev $PRECONFIGURED_TAPIF mode tap user `whoami`
+sudo ip tuntap add dev $PRECONFIGURED_TAPIF1 mode tap user `whoami`
 sudo ip link set $PRECONFIGURED_TAPIF up
+sudo ip link set $PRECONFIGURED_TAPIF1 up
 sudo brctl addbr lwipbridge
 sudo brctl addif lwipbridge $PRECONFIGURED_TAPIF
+sudo brctl addif lwipbridge $PRECONFIGURED_TAPIF1
 sudo ip addr add 192.168.1.1/24 dev lwipbridge
 sudo ip link set dev lwipbridge up

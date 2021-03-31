@@ -89,6 +89,9 @@
 #define NETMASK_ARGS "netmask %d.%d.%d.%d"
 #define IFCONFIG_ARGS "tap0 inet %d.%d.%d.%d " NETMASK_ARGS
 #endif
+#ifndef HW_ADDR_5 /* to define the hw_addr to run multiple apps */
+#define HW_ADDR_5 0xab
+#endif
 
 /* Define those to better describe your network interface. */
 #define IFNAME0 't'
@@ -125,12 +128,13 @@ low_level_init(struct netif *netif)
   /* Obtain MAC address from network interface. */
 
   /* (We just fake an address...) */
+  printf("DEVTAP DEFAULT IF : %s\n", DEVTAP_DEFAULT_IF);
   netif->hwaddr[0] = 0x02;
   netif->hwaddr[1] = 0x12;
   netif->hwaddr[2] = 0x34;
   netif->hwaddr[3] = 0x56;
   netif->hwaddr[4] = 0x78;
-  netif->hwaddr[5] = 0xab;
+  netif->hwaddr[5] = HW_ADDR_5;
   netif->hwaddr_len = 6;
 
   /* device capabilities */

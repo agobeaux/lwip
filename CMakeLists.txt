@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.10)
+# set CMAKE: useful for sourcetrail
+set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set (CMAKE_CONFIGURATION_TYPES "Debug;Release")
+
+# set a variable to know if we are creating server or client
+message("CLIENT_OR_SERVER=${CLIENT_OR_SERVER}")
 
 project(lwIP)
 
@@ -12,7 +17,11 @@ set (LWIP_DEFINITIONS LWIP_DEBUG=1)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
   add_subdirectory(${LWIP_DIR}/contrib/ports/win32/example_app)
 elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" OR ${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-  add_subdirectory(${LWIP_DIR}/contrib/ports/unix/example_app)
+  if (${CLIENT_OR_SERVER} STREQUAL "SERVER")
+    add_subdirectory(${LWIP_DIR}/contrib/ports/unix/example_app)
+  elseif (${CLIENT_OR_SERVER} STREQUAL "CLIENT")
+    add_subdirectory(${LWIP_DIR}/contrib/ports/unix/example_app_client)
+  endif()
 else()
   message(WARNING "Host ${CMAKE_SYSTEM_NAME} is not supported to build example_app")
 endif()

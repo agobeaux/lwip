@@ -74,10 +74,13 @@
 #define LWIP_NETIF_STATUS_CALLBACK      1
 #define LWIP_NETIF_EXT_STATUS_CALLBACK  1
 
-/* #define LWIP_DEBUG                  1 */
+#define DEVTAP_DEFAULT_IF "tap0"
+#define HW_ADDR_5 0x01
+
+#define LWIP_DEBUG                  1
 #ifdef LWIP_DEBUG
 
-/* #define PPP_DEBUG                  LWIP_DBG_ON
+#define PPP_DEBUG                  LWIP_DBG_ON
 #define MEM_DEBUG                  LWIP_DBG_ON
 #define MEMP_DEBUG                 LWIP_DBG_ON
 #define PBUF_DEBUG                 LWIP_DBG_ON
@@ -103,7 +106,9 @@
 #define TCP_FR_DEBUG               LWIP_DBG_ON
 #define TCP_QLEN_DEBUG             LWIP_DBG_ON
 #define TCP_RST_DEBUG              LWIP_DBG_ON
-*/
+#define TAPIF_DEBUG                LWIP_DBG_ON
+
+#else
 
 #define LWIP_DBG_MIN_LEVEL         0
 #define PPP_DEBUG                  LWIP_DBG_OFF

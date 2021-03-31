@@ -167,7 +167,7 @@ HTTPFILES=$(LWIPDIR)/apps/http/altcp_proxyconnect.c \
 # MAKEFSDATA: MAKEFSDATA HTTP server host utility
 MAKEFSDATAFILES=$(LWIPDIR)/apps/http/makefsdata/makefsdata.c
 
-# LWIPERFFILES: IPERF server
+# LWIPERFFILES: IPERF server and client
 LWIPERFFILES=$(LWIPDIR)/apps/lwiperf/lwiperf.c
 
 # SMTPFILES: SMTP client

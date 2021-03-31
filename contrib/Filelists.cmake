@@ -17,6 +17,7 @@ set(lwipcontribexamples_SRCS
     ${LWIP_CONTRIB_DIR}/examples/httpd/https_example/https_example.c
     ${LWIP_CONTRIB_DIR}/examples/httpd/ssi_example/ssi_example.c
     ${LWIP_CONTRIB_DIR}/examples/lwiperf/lwiperf_example.c
+    ${LWIP_CONTRIB_DIR}/examples/lwiperf_client/lwiperf_client_example.c
     ${LWIP_CONTRIB_DIR}/examples/mdns/mdns_example.c
     ${LWIP_CONTRIB_DIR}/examples/mqtt/mqtt_example.c
     ${LWIP_CONTRIB_DIR}/examples/ppp/pppos_example.c
