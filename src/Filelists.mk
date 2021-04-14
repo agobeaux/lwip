@@ -47,6 +47,7 @@ COREFILES=$(LWIPDIR)/core/init.c \
 	$(LWIPDIR)/core/altcp_tcp.c \
 	$(LWIPDIR)/core/tcp.c \
 	$(LWIPDIR)/core/tcp_in.c \
+	$(LWIPDIR)/core/tcp_in_helper.c \
 	$(LWIPDIR)/core/tcp_out.c \
 	$(LWIPDIR)/core/timeouts.c \
 	$(LWIPDIR)/core/udp.c

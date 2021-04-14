@@ -62,7 +62,7 @@
 
 /** Specify the idle timeout (in seconds) after that the test fails */
 #ifndef LWIPERF_TCP_MAX_IDLE_SEC
-#define LWIPERF_TCP_MAX_IDLE_SEC    10U
+#define LWIPERF_TCP_MAX_IDLE_SEC    255U /* WARNING: in terms of TCP_SLOWTMR value... not really seconds */
 #endif
 #if LWIPERF_TCP_MAX_IDLE_SEC > 255
 #error LWIPERF_TCP_MAX_IDLE_SEC must fit into an u8_t
@@ -250,7 +250,7 @@ static void
 lwiperf_tcp_close(lwiperf_state_tcp_t *conn, enum lwiperf_report_type report_type)
 {
   err_t err;
-
+  printf("lwiperf_tcp_close() called\n");
   lwiperf_list_remove(&conn->base);
   lwip_tcp_conn_report(conn, report_type);
   if (conn->conn_pcb != NULL) {
@@ -293,7 +293,13 @@ lwiperf_tcp_client_send_more(lwiperf_state_tcp_t *conn)
       u32_t diff_ms = now - conn->time_started;
       u32_t time = (u32_t) - (s32_t)lwip_htonl(conn->settings.amount);
       u32_t time_ms = time * 10;
+      printf("lwiperf: Time limited session\n");
       if (diff_ms >= time_ms) {
+        printf("Closing connection lwiperf: diff_ms: %u, time_ms: %u, time: %u, s32_t lwip_htonl(settings.amount): %u\n",
+                diff_ms,
+                time_ms,
+                time,
+                (s32_t)lwip_htonl(conn->settings.amount));
         /* time specified by the client is over -> close the connection */
         lwiperf_tcp_close(conn, LWIPERF_TCP_DONE_CLIENT);
         return ERR_OK;
@@ -301,6 +307,7 @@ lwiperf_tcp_client_send_more(lwiperf_state_tcp_t *conn)
     } else {
       /* this session is byte-limited */
       u32_t amount_bytes = lwip_htonl(conn->settings.amount);
+      printf("lwiperf: Byte limited session\n");
       /* @todo: this can send up to 1*MSS more than requested... */
       if (amount_bytes >= conn->bytes_transferred) {
         /* all requested bytes transferred -> close the connection */
@@ -333,8 +340,10 @@ lwiperf_tcp_client_send_more(lwiperf_state_tcp_t *conn)
     }
     txlen = txlen_max;
     do {
+      printf("Now: %u, Trying to send %d bytes\n", sys_now(), txlen);
       err = tcp_write(conn->conn_pcb, txptr, txlen, apiflags);
       if (err ==  ERR_MEM) {
+        printf("ERR_MEM happened -> sending half...\n");
         txlen /= 2;
       }
     } while ((err == ERR_MEM) && (txlen >= (TCP_MSS / 2)));
@@ -344,7 +353,7 @@ lwiperf_tcp_client_send_more(lwiperf_state_tcp_t *conn)
     } else {
       send_more = 0;
     }
-  } while (send_more);
+  } while (send_more && sleep(0) == 0); /* added sleep(1) to sleep one second between each packet sending */
 
   tcp_output(conn->conn_pcb);
   return ERR_OK;
@@ -428,6 +437,7 @@ lwiperf_tx_start_impl(const ip_addr_t *remote_ip, u16_t remote_port, lwiperf_set
 
   err = tcp_connect(newpcb, &remote_addr, remote_port, lwiperf_tcp_client_connected);
   if (err != ERR_OK) {
+    printf("lwiperf.c lwiperf_tx_start_impl: tcp_connect returned an error\n");
     lwiperf_tcp_close(client_conn, LWIPERF_TCP_ABORTED_LOCAL);
     return err;
   }
@@ -493,6 +503,7 @@ lwiperf_tcp_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
     }
     if (!conn->have_settings_buf) {
       if (pbuf_copy_partial(p, &conn->settings, sizeof(lwiperf_settings_t), 0) != sizeof(lwiperf_settings_t)) {
+        printf("lwiperf.c lwiperf_tcp_recv: !conn->have_settings_buf + ...\n");
         lwiperf_tcp_close(conn, LWIPERF_TCP_ABORTED_LOCAL);
         pbuf_free(p);
         return ERR_OK;
@@ -577,7 +588,9 @@ lwiperf_tcp_poll(void *arg, struct tcp_pcb *tpcb)
   LWIP_ASSERT("pcb mismatch", conn->conn_pcb == tpcb);
   LWIP_UNUSED_ARG(tpcb);
   if (++conn->poll_count >= LWIPERF_TCP_MAX_IDLE_SEC) {
-    lwiperf_tcp_close(conn, LWIPERF_TCP_ABORTED_LOCAL);
+    printf("lwiperf.c lwip_tcp_poll: lwip_tcp_max_idle_sec reached!!!! Bypassed by me though\n");
+    //lwiperf_tcp_close(conn, LWIPERF_TCP_ABORTED_LOCAL);
+    /* TODO: delete bypass ?*/
     return ERR_OK; /* lwiperf_tcp_close frees conn */
   }
 
@@ -784,7 +797,8 @@ void* lwiperf_start_tcp_client(const ip_addr_t* remote_addr, u16_t remote_port,
   settings.num_threads = htonl(1);
   settings.remote_port = htonl(LWIPERF_TCP_PORT_DEFAULT);
   /* TODO: implement passing duration/amount of bytes to transfer */
-  settings.amount = htonl((u32_t)-1000);
+  settings.amount = htonl((u32_t)-3000); /* 3000 pour 30 s */
+  printf("Amount of duration of transfer in lwiperf: %u, init: %u\n", settings.amount, (u32_t)-100);
 
   ret = lwiperf_tx_start_impl(remote_addr, remote_port, &settings, report_fn, report_arg, NULL, &state);
   if (ret == ERR_OK) {

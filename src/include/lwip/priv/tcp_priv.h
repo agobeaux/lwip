@@ -460,6 +460,8 @@ struct tcp_seg *tcp_seg_copy(struct tcp_seg *seg);
       printf("This is pcb num_rcv_unacked increased: %u\n", pcb->num_rcv_unacked); \
       tcp_set_flags(pcb, TF_ACK_DELAY);            \
     }                                              \
+    printf("in tcp_ack: pcb->rto = %d\n", pcb->rto);           \
+    tcp_debug_print_state(pcb->state);             \
   } while (0)
 
 
@@ -491,7 +493,7 @@ err_t tcp_enqueue_flags(struct tcp_pcb *pcb, u8_t flags);
 
 void tcp_rexmit_seg(struct tcp_pcb *pcb, struct tcp_seg *seg);
 
-void tcp_rst(const struct tcp_pcb* pcb, u32_t seqno, u32_t ackno,
+void tcp_rst(struct tcp_pcb* pcb, u32_t seqno, u32_t ackno,
        const ip_addr_t *local_ip, const ip_addr_t *remote_ip,
        u16_t local_port, u16_t remote_port);
 

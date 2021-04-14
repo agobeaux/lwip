@@ -77,8 +77,8 @@
 #define DEVTAP_DEFAULT_IF "tap0"
 #define HW_ADDR_5 0x01
 
-#define LWIP_DEBUG                  1
-#ifdef LWIP_DEBUG
+#define LWIP_DEBUG                  0
+#if LWIP_DEBUG == 1
 
 #define PPP_DEBUG                  LWIP_DBG_ON
 #define MEM_DEBUG                  LWIP_DBG_ON

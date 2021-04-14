@@ -53,6 +53,7 @@ set(lwipcore_SRCS
     ${LWIP_DIR}/src/core/altcp_tcp.c
     ${LWIP_DIR}/src/core/tcp.c
     ${LWIP_DIR}/src/core/tcp_in.c
+    ${LWIP_DIR}/src/core/tcp_in_helper.c
     ${LWIP_DIR}/src/core/tcp_out.c
     ${LWIP_DIR}/src/core/timeouts.c
     ${LWIP_DIR}/src/core/udp.c

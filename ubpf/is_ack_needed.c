@@ -11,6 +11,9 @@ int is_ack_needed(struct tcp_pcb *pcb) {
 	*/
 	u8_t num_rcv_unacked = get_num_rcv_unacked(pcb);
 	help_printf_uint8_t(num_rcv_unacked);
+	help_printf_uint32_t(get_tmr(pcb));
+	//help_printf_uint32_t(pcb->tmr);
+	//pcb->inactivity_timeout = pcb->tmr;
 	// and if delayed acks are not used??
 	
 	// MANUAL set of flags, should not be done this way...

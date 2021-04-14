@@ -130,7 +130,7 @@ struct api_msg {
 #if LWIP_SO_SNDTIMEO || LWIP_SO_LINGER
       u32_t time_started;
 #else /* LWIP_SO_SNDTIMEO || LWIP_SO_LINGER */
-      u8_t polls_left;
+      u32_t polls_left; /* INCREASE from u8_t to u32_t because of the change of TCP_TMR_INTERVAL */
 #endif /* LWIP_SO_SNDTIMEO || LWIP_SO_LINGER */
     } sd;
 #endif /* LWIP_TCP */

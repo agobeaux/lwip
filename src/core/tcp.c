@@ -1379,6 +1379,15 @@ tcp_slowtmr_start:
       }
     }
 
+
+    /* TCP_SLOW_INTERVAL not used as the threshold is pcb->rto_max which should also be in ticks... -> API function should take care of this */
+
+    if (epbf_should_drop_connection_UTO(pcb)) {
+      ++pcb_remove;
+      LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: removing pcb because of eBPF plugins UTO\n"));
+    }
+
+
     /* If the PCB should be removed, do it. */
     if (pcb_remove) {
       struct tcp_pcb *pcb2;
@@ -1902,6 +1911,7 @@ tcp_alloc(u8_t prio)
        The send MSS is updated when an MSS option is received. */
     pcb->mss = INITIAL_MSS;
     pcb->rto = 3000 / TCP_SLOW_INTERVAL;
+    pcb->rto_max = 1 << 14; /* Init to max positive value of rto */
     pcb->sv = 3000 / TCP_SLOW_INTERVAL;
     pcb->rtime = -1;
     pcb->cwnd = 1;

@@ -90,9 +90,9 @@
 
 /* Allow to add custom TCP header options by defining this hook */
 #ifdef LWIP_HOOK_TCP_OUT_TCPOPT_LENGTH
-#define LWIP_TCP_OPT_LENGTH_SEGMENT(flags, pcb) LWIP_HOOK_TCP_OUT_TCPOPT_LENGTH(pcb, LWIP_TCP_OPT_LENGTH(flags))
+#define LWIP_TCP_OPT_LENGTH_SEGMENT(flags, pcb) LWIP_HOOK_TCP_OUT_TCPOPT_LENGTH(pcb, LWIP_TCP_OPT_LENGTH(flags)) + ebpf_get_options_length(pcb) /* TODO: also modify this... */
 #else
-#define LWIP_TCP_OPT_LENGTH_SEGMENT(flags, pcb) LWIP_TCP_OPT_LENGTH(flags)
+#define LWIP_TCP_OPT_LENGTH_SEGMENT(flags, pcb) LWIP_TCP_OPT_LENGTH(flags) + ebpf_get_options_length(pcb)
 #endif
 
 /* Define some copy-macros for checksum-on-copy so that the code looks
@@ -159,8 +159,9 @@ tcp_route(const struct tcp_pcb *pcb, const ip_addr_t *src, const ip_addr_t *dst)
  * p is freed on failure.
  */
 static struct tcp_seg *
-tcp_create_segment(const struct tcp_pcb *pcb, struct pbuf *p, u8_t hdrflags, u32_t seqno, u8_t optflags)
+tcp_create_segment(struct tcp_pcb *pcb, struct pbuf *p, u8_t hdrflags, u32_t seqno, u8_t optflags)
 {
+  /* TODO: took out "const" for the pcb, should try to put it back */
   struct tcp_seg *seg;
   u8_t optlen;
 
@@ -1548,6 +1549,7 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb, struct netif *netif
     *(opts++) = PP_HTONL(0x01010402);
   }
 #endif
+  opts = ebpf_write_tcp_uto_option(opts);
 
   /* Set retransmission timer running if it is not currently enabled
      This must be set before checking the route. */
@@ -1889,8 +1891,9 @@ tcp_output_alloc_header(struct tcp_pcb *pcb, u16_t optlen, u16_t datalen,
 
 /* Fill in options for control segments */
 static void
-tcp_output_fill_options(const struct tcp_pcb *pcb, struct pbuf *p, u8_t optflags, u8_t num_sacks)
+tcp_output_fill_options(struct tcp_pcb *pcb, struct pbuf *p, u8_t optflags, u8_t num_sacks)
 {
+  /* TODO: took out "const" from pcb, should try to put it back */
   struct tcp_hdr *tcphdr;
   u32_t *opts;
   u16_t sacks_len = 0;
@@ -1923,6 +1926,7 @@ tcp_output_fill_options(const struct tcp_pcb *pcb, struct pbuf *p, u8_t optflags
 #ifdef LWIP_HOOK_TCP_OUT_ADD_TCPOPTS
   opts = LWIP_HOOK_TCP_OUT_ADD_TCPOPTS(p, tcphdr, pcb, opts);
 #endif
+  opts = ebpf_write_tcp_uto_option(opts);
 
   LWIP_UNUSED_ARG(pcb);
   LWIP_UNUSED_ARG(sacks_len);
@@ -1997,7 +2001,7 @@ tcp_output_control_segment(const struct tcp_pcb *pcb, struct pbuf *p,
  * @param remote_port the remote TCP port to send the segment to
  */
 void
-tcp_rst(const struct tcp_pcb *pcb, u32_t seqno, u32_t ackno,
+tcp_rst(struct tcp_pcb *pcb, u32_t seqno, u32_t ackno,
         const ip_addr_t *local_ip, const ip_addr_t *remote_ip,
         u16_t local_port, u16_t remote_port)
 {

@@ -59,6 +59,8 @@
 #include "lwip/nd6.h"
 #endif /* LWIP_ND6_TCP_REACHABILITY_HINTS */
 
+#include "lwip/tcp_in_helper.h"
+
 #include <string.h>
 
 #ifdef LWIP_HOOK_FILENAME
@@ -72,11 +74,6 @@
    processing of TCP segments. They are set by the tcp_input()
    function. */
 static struct tcp_seg inseg;
-static struct tcp_hdr *tcphdr;
-static u16_t tcphdr_optlen;
-static u16_t tcphdr_opt1len;
-static u8_t *tcphdr_opt2;
-static u16_t tcp_optidx;
 static u32_t seqno, ackno;
 static tcpwnd_size_t recv_acked;
 static u16_t tcplen;
@@ -646,7 +643,7 @@ tcp_listen_input(struct tcp_pcb_listen *pcb)
     /* For incoming segments with the ACK flag set, respond with a
        RST. */
     LWIP_DEBUGF(TCP_RST_DEBUG, ("tcp_listen_input: ACK in LISTEN, sending reset\n"));
-    tcp_rst((const struct tcp_pcb *)pcb, ackno, seqno + tcplen, ip_current_dest_addr(),
+    tcp_rst((struct tcp_pcb *)pcb, ackno, seqno + tcplen, ip_current_dest_addr(),
             ip_current_src_addr(), tcphdr->dest, tcphdr->src);
   } else if (flags & TCP_SYN) {
     LWIP_DEBUGF(TCP_DEBUG, ("TCP connection request %"U16_F" -> %"U16_F".\n", tcphdr->src, tcphdr->dest));
@@ -1890,18 +1887,6 @@ tcp_receive(struct tcp_pcb *pcb)
   }
 }
 
-static u8_t
-tcp_get_next_optbyte(void)
-{
-  u16_t optidx = tcp_optidx++;
-  if ((tcphdr_opt2 == NULL) || (optidx < tcphdr_opt1len)) {
-    u8_t *opts = (u8_t *)tcphdr + TCP_HLEN;
-    return opts[optidx];
-  } else {
-    u8_t idx = (u8_t)(optidx - tcphdr_opt1len);
-    return tcphdr_opt2[idx];
-  }
-}
 
 /**
  * Parses the options contained in the incoming segment.
@@ -1916,6 +1901,7 @@ tcp_parseopt(struct tcp_pcb *pcb)
 {
   u8_t data;
   u16_t mss;
+  err_t err;
 #if LWIP_TCP_TIMESTAMPS
   u32_t tsval;
 #endif
@@ -2015,17 +2001,28 @@ tcp_parseopt(struct tcp_pcb *pcb)
           break;
 #endif /* LWIP_TCP_SACK_OUT */
         default:
-          LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other\n"));
-          data = tcp_get_next_optbyte();
-          if (data < 2) {
-            LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: bad length\n"));
-            /* If the length field is zero, the options are malformed
-               and we don't process them further. */
+          /* Here, we can first check if a plugin can parse this option */
+          err = ebpf_parse_tcp_option(opt, pcb);
+          if (err == ERR_OK) {
+            LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other, parsed by eBPF\n"));
+          } else if (err == ERR_VAL) {
+            LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other, parsing by eBPF crashed\n"));
             return;
+          } else { /* ERR_ARG, if opt non recognized */
+            LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other, couldn't be parsed by eBPF\n"));
+            data = tcp_get_next_optbyte();
+            if (data < 2) {
+              LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: bad length\n"));
+              /* If the length field is zero, the options are malformed
+                and we don't process them further. */
+              return;
+            }
+            /* All other options have a length field, so that we easily
+              can skip past them. */
+            tcp_optidx += data - 2;
           }
-          /* All other options have a length field, so that we easily
-             can skip past them. */
-          tcp_optidx += data - 2;
+          /* LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other\n")); */
+
       }
     }
   }

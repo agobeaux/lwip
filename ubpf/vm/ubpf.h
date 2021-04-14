@@ -92,6 +92,31 @@ ubpf_jit_fn ubpf_compile(struct ubpf_vm *vm, char **errmsg);
 
 
 /*
+ * TODO: This function SHOULD be merged with the other one, but how do we know that we have to multiply the value by TCP_SLOW_INTERVAL?
+ * Check if the connection should be dropped according to eBPF plugins. Currently: User Timeout option (UTO)
+ * TODO: WRONG???!!! Should change the UTO if possible... A timeout exists and it should replace it....
+ *      Well, the existing timeout is simply 2*MSL (Maximum Segment lifetime) which is 2*1minute.
+ *      Well, we could want to have this set higher!... Should define the variable which holds the timeout value!
+ *      UPDATE: Maybe we do not want that, this timer is for the TIME_WAIT state which is a closing one.
+ */
+int epbf_should_drop_connection_UTO(struct tcp_pcb *pcb); /* u64_t time_waiting_unacked */
+
+/*
+ * Parses tcp options
+ */
+int ebpf_parse_tcp_option(u8_t opt, struct tcp_pcb *pcb);
+
+/*
+ * Writes tcp option User TimeOut
+ */
+u32_t *ebpf_write_tcp_uto_option(u32_t *opts);
+
+/*
+ * Returns the length of the TCP options defined in the plugins. Only User TimeOut for now
+ */
+u8_t ebpf_get_options_length(struct tcp_pcb *pcb);
+
+/*
  * Called to know if an ACK should be sent. Returns true if it is the case, false otherwise
  */
 int ebpf_is_ack_needed(struct tcp_pcb *pcb);
@@ -101,5 +126,10 @@ int ebpf_is_ack_needed(struct tcp_pcb *pcb);
  * TODO: should not put this function here? As it will not be called outside ubpf.h ?
  */
 int run_ubpf(const char* code_filename, struct tcp_pcb *pcb);
+
+/*
+ * like run_ubpf but for opts -> TODO: should refactor! define a proper structure
+ */
+u32_t *run_ubpf_opts(const char* code_filename, u32_t *opts);
 
 #endif

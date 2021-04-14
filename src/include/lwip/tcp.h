@@ -302,8 +302,9 @@ struct tcp_pcb {
   u32_t rtseq;  /* sequence number being timed */
   s16_t sa, sv; /* @see "Congestion Avoidance and Control" by Van Jacobson and Karels */
 
-  s16_t rto;    /* retransmission time-out (in ticks of TCP_SLOW_INTERVAL) */
-  u8_t nrtx;    /* number of retransmissions */
+  s16_t rto;      /* retransmission time-out (in ticks of TCP_SLOW_INTERVAL) */
+  s16_t rto_max;  /* max value of retransmission time-out allowed (in ticks of TCP_SLOW_INTERVAL) */
+  u8_t nrtx;      /* number of retransmissions */
 
   /* fast retransmit/recovery */
   u8_t dupacks;
