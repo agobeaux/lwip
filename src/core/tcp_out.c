@@ -1549,7 +1549,7 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb, struct netif *netif
     *(opts++) = PP_HTONL(0x01010402);
   }
 #endif
-  opts = ebpf_write_tcp_uto_option(opts);
+  opts = ebpf_write_tcp_uto_option(pcb, opts);
 
   /* Set retransmission timer running if it is not currently enabled
      This must be set before checking the route. */
@@ -1926,7 +1926,7 @@ tcp_output_fill_options(struct tcp_pcb *pcb, struct pbuf *p, u8_t optflags, u8_t
 #ifdef LWIP_HOOK_TCP_OUT_ADD_TCPOPTS
   opts = LWIP_HOOK_TCP_OUT_ADD_TCPOPTS(p, tcphdr, pcb, opts);
 #endif
-  opts = ebpf_write_tcp_uto_option(opts);
+  opts = ebpf_write_tcp_uto_option(pcb, opts);
 
   LWIP_UNUSED_ARG(pcb);
   LWIP_UNUSED_ARG(sacks_len);

@@ -22,6 +22,17 @@
 
 #include "lwip/tcp.h"
 
+#include<stdarg.h> /* VA_ARGS, va_arg(ap, type) etc */
+
+/* Helps to find the number of arguments in __VA_ARGS__ (up to 9 arguments though) */
+/* Works by the fact that in N_ARGS_HELPER2, we put to the trash the first 9 elements
+   and return the 10th one. Taken from PQUIC implementation */
+# define N_ARGS(...) N_ARGS_HELPER1(__VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0)
+# define N_ARGS_HELPER1(...) N_ARGS_HELPER2(__VA_ARGS__)
+# define N_ARGS_HELPER2(x1, x2, x3, x4, x5, x6, x7, x8, x9, n, ...) n
+
+#define run_ubpf_with_args(pcb, filename, ...) run_ubpf_args(pcb, filename, N_ARGS( __VA_ARGS__), ## __VA_ARGS__)
+
 struct ubpf_vm;
 typedef uint64_t (*ubpf_jit_fn)(void *mem, size_t mem_len);
 
@@ -104,12 +115,12 @@ int epbf_should_drop_connection_UTO(struct tcp_pcb *pcb); /* u64_t time_waiting_
 /*
  * Parses tcp options
  */
-int ebpf_parse_tcp_option(u8_t opt, struct tcp_pcb *pcb);
+int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt);
 
 /*
  * Writes tcp option User TimeOut
  */
-u32_t *ebpf_write_tcp_uto_option(u32_t *opts);
+u32_t *ebpf_write_tcp_uto_option(struct tcp_pcb *pcb, u32_t *opts);
 
 /*
  * Returns the length of the TCP options defined in the plugins. Only User TimeOut for now
@@ -122,14 +133,8 @@ u8_t ebpf_get_options_length(struct tcp_pcb *pcb);
 int ebpf_is_ack_needed(struct tcp_pcb *pcb);
 
 /*
- * Runs the ubpf machine on hard-coded file (for now) and returns the error code
- * TODO: should not put this function here? As it will not be called outside ubpf.h ?
+ * Like run_ubpf but with extensible args
  */
-int run_ubpf(const char* code_filename, struct tcp_pcb *pcb);
-
-/*
- * like run_ubpf but for opts -> TODO: should refactor! define a proper structure
- */
-u32_t *run_ubpf_opts(const char* code_filename, u32_t *opts);
+uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_args, ...);
 
 #endif

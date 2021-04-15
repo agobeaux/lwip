@@ -31,7 +31,7 @@
 #include <sys/types.h>          /* See NOTES */
 #include <sys/socket.h>
 
-#include "lwip/tcp_in_helper.h" /* for tcp_get_next_optbyte */
+#include "../getset.h"
 
 /* #include "lwip/tcp.h" // included in ubpf.h for now, needed. DOES NOT WORK YET, change compilation flags.. include for type tcpflags_t */
 
@@ -56,17 +56,17 @@ int epbf_should_drop_connection_UTO(struct tcp_pcb *pcb) { /* u64_t time_waiting
     printf("epbf_should_drop_connection_UTO\n");
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/ebpf_should_drop_connection_UTO.bpf";
     /* LWIP_UNUSED_ARG(time_waiting_unacked); */
-    return run_ubpf(code_filename, pcb);
+    return run_ubpf_with_args(pcb, code_filename);
 }
 
-int ebpf_parse_tcp_option(u8_t opt, struct tcp_pcb *pcb) {
+int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt) {
     printf("ebpf_parse_tcp_option\n");
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/parse_tcp_option.bpf";
     LWIP_UNUSED_ARG(opt);
-    return run_ubpf(code_filename, pcb);
+    return run_ubpf_with_args(pcb, code_filename);
 }
 
-u32_t *ebpf_write_tcp_uto_option(u32_t *opts) { /* TODO: use VA_ARGS for passing multiple options to the ebpf function? */
+u32_t *ebpf_write_tcp_uto_option(struct tcp_pcb *pcb, u32_t *opts) { /* TODO: use VA_ARGS for passing multiple options to the ebpf function? */
     /* TODO: for using this argument, we could have a thing like in QUIC (cf plugins/tlp/set_next_wake_time.c/set_next_wake_time)
      *       This requires to cast in a new type (protoop_arg_t as in quic for ex) and to cast to the good type once in the plugin implementation
      *       PROBLEM: dereferencing a pointer here... will not be able to access "opts"... how to solve this ? Should transmit in the VM's memory I guess...
@@ -74,82 +74,49 @@ u32_t *ebpf_write_tcp_uto_option(u32_t *opts) { /* TODO: use VA_ARGS for passing
      */
     printf("ebpf_write_tcp_uto_option\n");
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/write_tcp_option.bpf";
-    return run_ubpf_opts(code_filename, opts);
+    printf("ebpf_write_tcp_uto_option: Before calling run_ubpf_with_args, opts is at %p\n", opts);
+    return run_ubpf_with_args(pcb, code_filename, opts);
 }
 
 u8_t ebpf_get_options_length(struct tcp_pcb *pcb) {
     printf("ebpf_get_options_length\n");
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/ebpf_get_options_length.bpf";
-    return run_ubpf(code_filename, pcb);
+    return run_ubpf_with_args(pcb, code_filename);
 }
 
 int ebpf_is_ack_needed(struct tcp_pcb *pcb) {
     printf("ebpf_is_ack_needed\n");
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/is_ack_needed.bpf";
-    return run_ubpf(code_filename, pcb);
+    return run_ubpf_with_args(pcb, code_filename);
 }
 
-/* TODO: change, should return protoop_arg_t, a custom type to return meaningful values */
-/* TODO: split this function, have a load part, exec part etc */
-int run_ubpf(const char *code_filename, struct tcp_pcb *pcb)
-{
-    /*
-    struct option longopts[] = {
-        { .name = "help", .val = 'h', },
-        { .name = "mem", .val = 'm', .has_arg=1 },
-        { .name = "jit", .val = 'j' },
-        { .name = "register-offset", .val = 'r', .has_arg=1 },
-        { }
-    };
-    */
+uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_args, ...) {
+    int i;
+    va_list ap;
 
+    va_start(ap, n_args);
+    uint64_t args[n_args]; /* Cast everything to a uint64_t, thus able to contain pointers */
+
+    for (i = 0; i < n_args; ++i) {
+        args[i] = va_arg(ap, uint64_t);
+        printf("run_ubpf_args: Before calling the function, args[%d] is at %p\n", i, args[i]);
+    }
+
+    va_end(ap);
+
+    tcp_ubpf_cnx_t cnx = {.pcb = pcb, .inputc = n_args, .inputv = args};
     const char *mem_filename = NULL;
     bool jit = false;
 
-    /*
-    int opt;
-    while ((opt = getopt_long(argc, argv, "hm:jr:", longopts, NULL)) != -1) {
-        switch (opt) {
-        case 'm':
-            mem_filename = optarg;
-            break;
-        case 'j':
-            jit = true;
-            break;
-        case 'r':
-            ubpf_set_register_offset(atoi(optarg));
-            break;
-        case 'h':
-            usage(argv[0]);
-            return 0;
-        default:
-            usage(argv[0]);
-            return 1;
-        }
-    }
-
-    if (argc != optind + 1) {
-        usage(argv[0]);
-        return 1;
-    }
-    */
-
-    /* hard-coded file */
-    /* const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/test2.bpf"; */
-    /*
-        const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/is_ack_needed.bpf";
-    */
     size_t code_len;
     void *code;
     
-    size_t mem_len = 0;
-    void *mem = NULL;
+    size_t mem_len = 20000; /* TODO: change this value */
+    void *mem = (void*) malloc(20000);
 
     struct ubpf_vm *vm;
 
     uint64_t ret;
-
-    
 
     printf("Beginning of run_ubpf()\n"); fflush(NULL); /* TODO: erase */
     
@@ -158,9 +125,6 @@ int run_ubpf(const char *code_filename, struct tcp_pcb *pcb)
         return 1;
     }
 
-    
-    
-    
     if (mem_filename != NULL) {
         mem = readfile(mem_filename, 1024*1024, &mem_len);
         if (mem == NULL) {
@@ -216,97 +180,10 @@ int run_ubpf(const char *code_filename, struct tcp_pcb *pcb)
         ret = fn(mem, mem_len);
     } else {
         printf("jit not used\n"); fflush(NULL); /* TODO: erase */
-        ret = ubpf_exec_with_arg(vm, pcb, mem, mem_len);
+        ret = ubpf_exec_with_arg(vm, &cnx, mem, mem_len);
     }
 
     printf("0x%"PRIx64"\n", ret);
-
-    ubpf_destroy(vm);
-
-    return ret; /* TODO: change, should not return int but something else, protooop_arg_t like PQUIC */
-}
-
-
-u32_t *run_ubpf_opts(const char *code_filename, u32_t *opts)
-{
-    const char *mem_filename = NULL;
-    bool jit = false;
-
-    size_t code_len;
-    void *code;
-
-    size_t mem_len = 20000;
-    void *mem = (void*) malloc(20000);
-
-    struct ubpf_vm *vm;
-
-    u32_t *ret;
-
-    printf("Beginning of run_ubpf_opts()\n"); fflush(NULL); /* TODO: erase */
-
-    code = readfile(code_filename, 1024*1024, &code_len);
-    if (code == NULL) {
-        return NULL;
-    }
-
-    if (mem_filename != NULL) {
-        mem = readfile(mem_filename, 1024*1024, &mem_len);
-        if (mem == NULL) {
-            return NULL;
-        }
-    }
-
-    vm = ubpf_create();
-    if (!vm) {
-        fprintf(stderr, "Failed to create VM\n");
-        return NULL;
-    }
-
-    register_functions(vm);
-
-    /*
-     * The ELF magic corresponds to an RSH instruction with an offset,
-     * which is invalid.
-     */
-    bool elf = code_len >= SELFMAG && !memcmp(code, ELFMAG, SELFMAG);
-
-    char *errmsg;
-    int rv;
-
-    ubpf_jit_fn fn;
-
-    if (elf) {
-        rv = ubpf_load_elf(vm, code, code_len, &errmsg, (uint64_t) mem, mem_len);
-    } else {
-        rv = ubpf_load(vm, code, code_len, &errmsg, (uint64_t) mem, mem_len);
-    }
-
-    free(code);
-
-    if (rv < 0) {
-        fprintf(stderr, "Failed to load code: %s\n", errmsg);
-        free(errmsg);
-        ubpf_destroy(vm);
-        return NULL;
-    }
-
-    printf("Before JIT\n"); fflush(NULL); /* TODO: erase */
-
-    if (jit) {
-        printf("jit is true\n"); fflush(NULL); /* TODO: erase */
-        fn = ubpf_compile(vm, &errmsg);
-        if (fn == NULL) {
-            fprintf(stderr, "Failed to compile: %s\n", errmsg);
-            free(errmsg);
-            return NULL;
-        }
-        ret = (u32_t *)fn(mem, mem_len);
-    } else {
-        printf("jit not used\n"); fflush(NULL); /* TODO: erase */
-        ret = (u32_t *)ubpf_exec_with_arg(vm, opts, mem, mem_len);
-    }
-
-    /* printf("0x%"PRIx64"\n", ret); */
 
     ubpf_destroy(vm);
 
@@ -388,119 +265,6 @@ trash_registers(void)
     );
 }
 
-/*
-static uint32_t
-sqrti(uint32_t x)
-{
-    return sqrt(x);
-}
-*/
-
-static void help_printf_uint8_t(uint8_t val) {
-    printf("%u\n", val);
-}
-
-static void help_printf_sint16_t(s16_t val) {
-    printf("%u\n", val);
-}
-
-static void help_printf_uint32_t(uint32_t val) {
-    printf("%u\n", val);
-}
-
-static void help_printf_char(char c) {
-    printf("%c\n", c);
-}
-
-static void help_printf_str(char *s) {
-    printf("%s\n", s);
-}
-
-static void help_printf_ptr(void *p) {
-    printf("%p\n", p);
-}
-
-/* TODO: define several functions in other file like getset.c, getset.h for pquic */
-/* TODO: use "tcpflags_t", have to include here + in plugin, -> lwip_interal.h ? */
-static uint16_t get_flag(struct tcp_pcb *pcb) {
-    printf("Returning flags: %u\n", pcb->flags); /* TODO: %u should be PRIu16 technically */
-    return pcb->flags;
-}
-
-static u32_t get_last_ack(struct tcp_pcb *pcb) {
-    printf("Returning last ack seqno sent: %u\n", pcb->lastack); /* TODO: %u should be PRIu32 */
-    return pcb->lastack;
-}
-
-static u32_t get_next_seqno(struct tcp_pcb *pcb) {
-    printf("Returning next seqno to send: %u\n", pcb->snd_nxt); /* TODO: %u should be PRIu32 */
-    return pcb->snd_nxt;
-}
-
-static void set_delayed_ack_flag(struct tcp_pcb *pcb) {
-    printf("Setting delayed ack flag: NOT THIS TIME\n");
-    printf("flag %u\n", pcb->flags);
-    pcb->flags |= 0x01U; /* TODO: should not be done this way */
-}
-
-static u8_t get_num_rcv_unacked(struct tcp_pcb *pcb) {
-    printf("Returning num_rcv_unacked: %u\n", pcb->num_rcv_unacked);
-    return pcb->num_rcv_unacked;
-}
-
-static u32_t get_tmr(struct tcp_pcb *pcb) {
-    printf("Returning tmr: %u\n", pcb->tmr);
-    return pcb->tmr;
-}
-
-static u16_t custom_htons(u16_t x) {
-    return ((u16_t)((((x) & (u16_t)0x00ffU) << 8) | (((x) & (u16_t)0xff00U) >> 8)));
-}
-
-static u16_t custom_ntohs(u16_t x) {
-    return custom_htons(x);
-}
-
-static u32_t custom_htonl(u32_t x) {
-    return ((((x) & (u32_t)0x000000ffUL) << 24) | \
-            (((x) & (u32_t)0x0000ff00UL) <<  8) | \
-            (((x) & (u32_t)0x00ff0000UL) >>  8) | \
-            (((x) & (u32_t)0xff000000UL) >> 24));
-}
-
-static u32_t custom_ntohl(u32_t x) {
-    return custom_htonl(x);
-}
-
-static void set_opt(u32_t *opts, int index, u32_t value) {
-    printf("I am in set_opt function\n");
-    opts[index] = value;
-    printf("Returning from set_opt function\n");
-}
-
-static s16_t get_rto(struct tcp_pcb *pcb) {
-    /* TODO: modify using TCP_TMR_INTERVAL */
-    printf("Returning rto: %d\n", pcb->rto);
-    return pcb->rto;
-}
-
-static s16_t get_rto_max(struct tcp_pcb *pcb) {
-    /* TODO: modify using TCP_TMR_INTERVAL */
-    printf("Returning rto_max: %d\n", pcb->rto_max);
-    return pcb->rto_max;
-}
-
-static void set_rto_max(struct tcp_pcb *pcb, u16_t timeout) {
-    /* TODO: modify using TCP_TMR_INTERVAL */
-    pcb->rto_max = timeout;
-    printf("rto_max set to %u\n", timeout);
-    printf("rto_max set to 0x%x\n", timeout);
-}
-
-static void membound_fail(uint64_t val, uint64_t mem_ptr, uint64_t stack_ptr) {
-    printf("Out of bound access with val 0x%lx, start of mem is 0x%lx, top of stack is 0x%lx\n", val, mem_ptr, stack_ptr);
-}
-
 static void
 register_functions(struct ubpf_vm *vm)
 {
@@ -539,6 +303,8 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, function_index++, "set_rto_max", set_rto_max);
     ubpf_register(vm, function_index++, "get_rto", get_rto);
     ubpf_register(vm, function_index++, "help_printf_sint16_t", help_printf_sint16_t);
+    ubpf_register(vm, function_index++, "get_pcb", get_pcb);
+    ubpf_register(vm, function_index++, "get_input", get_input);
 
 
 

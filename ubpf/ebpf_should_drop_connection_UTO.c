@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include "lwip/tcp.h"
-int ebpf_should_drop_connection_UTO(struct tcp_pcb *pcb) {
+#include "getset.h"
+
+int ebpf_should_drop_connection_UTO(tcp_ubpf_cnx_t *cnx) {
+	struct tcp_pcb *pcb = get_pcb(cnx);
 	char *str = "Currently launching eBPF function epbf_should_drop_connection_UTO!\n";
 	help_printf_str(str);
 	s16_t rto = get_rto(pcb);

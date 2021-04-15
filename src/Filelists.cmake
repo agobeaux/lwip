@@ -57,6 +57,7 @@ set(lwipcore_SRCS
     ${LWIP_DIR}/src/core/tcp_out.c
     ${LWIP_DIR}/src/core/timeouts.c
     ${LWIP_DIR}/src/core/udp.c
+    ${LWIP_DIR}/ubpf/getset.c
     ${LWIP_DIR}/ubpf/vm/ubpf.c
 )
 set(lwipcore4_SRCS

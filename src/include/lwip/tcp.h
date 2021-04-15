@@ -390,6 +390,20 @@ struct tcp_pcb {
 #endif
 };
 
+/* Context structure, needed for plugins */
+typedef struct {
+
+  /* TCP PCB on which the plugin will operate */
+  struct tcp_pcb *pcb;
+
+  /* Number of inputs for the plugin */
+  int inputc;
+
+  /* Actual inputs, all converted to uint64_t in order to allow for pointers */
+  uint64_t *inputv;
+
+} tcp_ubpf_cnx_t;
+
 #if LWIP_EVENT_API
 
 enum lwip_event {

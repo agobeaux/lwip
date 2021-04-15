@@ -2002,7 +2002,7 @@ tcp_parseopt(struct tcp_pcb *pcb)
 #endif /* LWIP_TCP_SACK_OUT */
         default:
           /* Here, we can first check if a plugin can parse this option */
-          err = ebpf_parse_tcp_option(opt, pcb);
+          err = ebpf_parse_tcp_option(pcb, opt);
           if (err == ERR_OK) {
             LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other, parsed by eBPF\n"));
           } else if (err == ERR_VAL) {

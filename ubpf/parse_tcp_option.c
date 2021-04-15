@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include "lwip/tcp.h"
 #include "lwip/err.h"
+#include "getset.h"
 
 #define TCP_OPT_UTO 28 /* User TimeOut option kind: 28 */
-int parse_tcp_option(struct tcp_pcb *pcb) { // u8_t opt
+int parse_tcp_option(tcp_ubpf_cnx_t *cnx) {
 	/* In this function, we parse the different TCP options that we can */
+	struct tcp_pcb *pcb = get_pcb(cnx);
 	u8_t granularity;
 	u16_t timeout;
 	//help_printf_str("opt in ubpf is: "); help_printf_uint8_t(opt);
