@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "lwip/tcp.h"
-#include "getset.h"
+#include "../../getset.h"
+#include "bpf.h"
 
 int is_ack_needed(tcp_ubpf_cnx_t *cnx) {
 	struct tcp_pcb *pcb = get_pcb(cnx);
@@ -25,8 +26,7 @@ int is_ack_needed(tcp_ubpf_cnx_t *cnx) {
 
 	// TAKE CARE: TODO: take care of seqnum wrapping!!!
 	// TODO: hardcoded 4, to change. Should be an environment variable such as in PQUIC
-	int threshold = 2;
-	if (num_rcv_unacked >= threshold) {
+	if (num_rcv_unacked >= ACK_THRESHOLD) {
 		help_printf_str("num_rcv_unacked >= threshold\n");
 		return 1;
 	}

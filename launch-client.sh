@@ -8,14 +8,17 @@ set -x
 
 echo The client corresponds to tap1 and HW_ADDR_5=0x88 and IP addr 192.168.1.4
 
-# Create network interfaces
-sudo ./contrib/ports/unix/setup-tapif
+# Create network interfaces if not already done
+if !(ifconfig | grep -q "tap0") || !(ifconfig | grep -q "tap1"); then
+  echo "Creating interfaces"
+  sudo ./contrib/ports/unix/setup-tapif
+fi
 
-# delete to be sure it will be made again
+# Delete executable to be sure it will be built again
 rm -f ./build/contrib/ports/unix/example_app_client/example_app_client
 
 cd build
-cmake . -DCLIENT_OR_SERVER=CLIENT; cmake --build .
+cmake .. -DCLIENT_OR_SERVER=CLIENT; cmake --build .
 cd ..
 
 # launch app
