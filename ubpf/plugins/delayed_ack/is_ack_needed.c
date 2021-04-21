@@ -1,18 +1,21 @@
 #include <stdio.h>
 #include "lwip/tcp.h"
-#include "../../getset.h"
-#include "bpf.h"
+#include "getset.h"
 
 int is_ack_needed(tcp_ubpf_cnx_t *cnx) {
 	struct tcp_pcb *pcb = get_pcb(cnx);
 	char *str = "Currently launching eBPF function is_ack_needed!\n";
 	help_printf_str(str);
+
 	/*
-	u32_t lastacksent = get_last_ack(pcb);
-	help_printf_uint32_t(lastacksent);
+	u32_t last_acked_seqno = get_last_acked_seqno(pcb);
+	help_printf_str("last_acked_seqno");
+	help_printf_uint32_t(last_acked_seqno);
 	u32_t nextseqnotosend = get_next_seqno(pcb);
+	help_printf_str("nextseqnotosend");
 	help_printf_uint32_t(nextseqnotosend);
 	*/
+
 	u8_t num_rcv_unacked = get_num_rcv_unacked(pcb);
 	help_printf_uint8_t(num_rcv_unacked);
 	help_printf_uint32_t(get_tmr(pcb));

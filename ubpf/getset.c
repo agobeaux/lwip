@@ -59,16 +59,20 @@ uint16_t get_flag(struct tcp_pcb *pcb) {
     return pcb->flags;
 }
 
-u32_t get_last_ack(struct tcp_pcb *pcb) {
-    printf("Returning last ack seqno sent: %u\n", pcb->lastack); /* TODO: %u should be PRIu32 */
+u32_t get_last_acked_seqno(struct tcp_pcb *pcb) {
+    printf("Returning seqno of last sent packet that was acked: %u\n", pcb->lastack); /* TODO: %u should be PRIu32 */
     return pcb->lastack;
 }
 
 u32_t get_next_seqno(struct tcp_pcb *pcb) {
-    printf("Returning next seqno to send: %u\n", pcb->snd_nxt); /* TODO: %u should be PRIu32 */
+    printf("Returning seqno of next byte to send: %u\n", pcb->snd_nxt); /* TODO: %u should be PRIu32 */
     return pcb->snd_nxt;
 }
 
+u8_t get_mss(struct tcp_pcb* pcb) {
+    printf("Returning the current MSS: %u\n", pcb->mss);
+    return pcb->mss;
+}
 void set_delayed_ack_flag(struct tcp_pcb *pcb) {
     printf("Setting delayed ack flag: NOT THIS TIME\n");
     printf("flag %u\n", pcb->flags);

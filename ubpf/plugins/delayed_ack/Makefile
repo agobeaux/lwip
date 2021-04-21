@@ -3,7 +3,7 @@ OBJ=$(SRC:.c=.bpf)
 ifndef ACK_THRESHOLD
 	ACK_THRESHOLD=2
 endif
-CFLAGS=-I../../../src/include -I../../../contrib/examples/example_app -I../../../contrib/ -I../../../contrib/ports/unix/port/include -DACK_THRESHOLD=$(ACK_THRESHOLD)
+CFLAGS=-I../../../src/include -I../../../contrib/examples/example_app -I../../../contrib/ -I../../../contrib/ports/unix/port/include -I../.. -DACK_THRESHOLD=$(ACK_THRESHOLD)
 
 all: $(SRC) $(OBJ)
 

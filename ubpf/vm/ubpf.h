@@ -133,6 +133,11 @@ u8_t ebpf_get_options_length(struct tcp_pcb *pcb);
 int ebpf_is_ack_needed(struct tcp_pcb *pcb);
 
 /*
+ * Returns true if the TCP stream linked to the pcb is considered as a thin stream
+ */
+int ebpf_is_thin_stream(struct tcp_pcb *pcb);
+
+/*
  * Like run_ubpf but with extensible args
  */
 uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_args, ...);

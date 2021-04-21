@@ -90,6 +90,12 @@ int ebpf_is_ack_needed(struct tcp_pcb *pcb) {
     return run_ubpf_with_args(pcb, code_filename);
 }
 
+int ebpf_is_thin_stream(struct tcp_pcb *pcb) {
+    printf("ebpf_is_thin_stream\n");
+    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/thin_stream/is_thin_stream.bpf";
+    return run_ubpf_with_args(pcb, code_filename);
+}
+
 uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_args, ...) {
     int i;
     va_list ap;
@@ -287,8 +293,9 @@ register_functions(struct ubpf_vm *vm)
 
     /* functions I added */
     ubpf_register(vm, function_index++, "get_flag", get_flag);
-    ubpf_register(vm, function_index++, "get_last_ack", get_last_ack);
+    ubpf_register(vm, function_index++, "get_last_acked_seqno", get_last_acked_seqno);
     ubpf_register(vm, function_index++, "get_next_seqno", get_next_seqno);
+    ubpf_register(vm, function_index++, "get_mss", get_mss);
     ubpf_register(vm, function_index++, "set_delayed_ack_flag", set_delayed_ack_flag);
     ubpf_register(vm, function_index++, "get_num_rcv_unacked", get_num_rcv_unacked);
     ubpf_register(vm, function_index++, "help_printf_uint8_t", help_printf_uint8_t);

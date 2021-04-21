@@ -27,9 +27,11 @@ void help_printf_ptr(void *p);
 /* TODO: use "tcpflags_t", have to include here + in plugin, -> lwip_interal.h ? */
 uint16_t get_flag(struct tcp_pcb *pcb);
 
-u32_t get_last_ack(struct tcp_pcb *pcb);
+u32_t get_last_acked_seqno(struct tcp_pcb *pcb);
 
 u32_t get_next_seqno(struct tcp_pcb *pcb);
+
+u8_t get_mss(struct tcp_pcb* pcb);
 
 void set_delayed_ack_flag(struct tcp_pcb *pcb);
 
