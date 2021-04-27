@@ -1382,7 +1382,7 @@ tcp_slowtmr_start:
 
     /* TCP_SLOW_INTERVAL not used as the threshold is pcb->rto_max which should also be in ticks... -> API function should take care of this */
 
-    if (epbf_should_drop_connection_UTO(pcb)) {
+    if (ebpf_should_drop_connection_UTO(pcb)) {
       ++pcb_remove;
       LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: removing pcb because of eBPF plugins UTO\n"));
     }

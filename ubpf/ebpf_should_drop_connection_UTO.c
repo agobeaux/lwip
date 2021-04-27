@@ -4,7 +4,7 @@
 
 int ebpf_should_drop_connection_UTO(tcp_ubpf_cnx_t *cnx) {
 	struct tcp_pcb *pcb = get_pcb(cnx);
-	char *str = "Currently launching eBPF function epbf_should_drop_connection_UTO!\n";
+	char *str = "Currently launching eBPF function ebpf_should_drop_connection_UTO!\n";
 	help_printf_str(str);
 	s16_t rto = get_rto(pcb);
 	s16_t rto_max = get_rto_max(pcb);

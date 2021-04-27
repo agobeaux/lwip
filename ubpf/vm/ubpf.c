@@ -52,8 +52,8 @@ static void usage(const char *name)
 */
 
 /* TODO: This function SHOULD be merged with the other one, but how do we know that we have to multiply the value by TCP_SLOW_INTERVAL? */
-int epbf_should_drop_connection_UTO(struct tcp_pcb *pcb) { /* u64_t time_waiting_unacked */
-    printf("epbf_should_drop_connection_UTO\n");
+int ebpf_should_drop_connection_UTO(struct tcp_pcb *pcb) { /* u64_t time_waiting_unacked */
+    printf("ebpf_should_drop_connection_UTO\n");
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/ebpf_should_drop_connection_UTO.bpf";
     /* LWIP_UNUSED_ARG(time_waiting_unacked); */
     return run_ubpf_with_args(pcb, code_filename);

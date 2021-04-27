@@ -110,7 +110,7 @@ ubpf_jit_fn ubpf_compile(struct ubpf_vm *vm, char **errmsg);
  *      Well, we could want to have this set higher!... Should define the variable which holds the timeout value!
  *      UPDATE: Maybe we do not want that, this timer is for the TIME_WAIT state which is a closing one.
  */
-int epbf_should_drop_connection_UTO(struct tcp_pcb *pcb); /* u64_t time_waiting_unacked */
+int ebpf_should_drop_connection_UTO(struct tcp_pcb *pcb); /* u64_t time_waiting_unacked */
 
 /*
  * Parses tcp options
