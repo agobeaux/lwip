@@ -2,10 +2,10 @@
 
 
 /*
- * Returns the pcb corresponding to the tcp_ubpf context
+ * Returns the tcp_ubpf context corresponding to the tcp pcb
  */
-struct tcp_pcb *get_pcb(tcp_ubpf_cnx_t *cnx) {
-    return cnx->pcb;
+tcp_ubpf_cnx_t *get_cnx(struct tcp_pcb *pcb) {
+    return &(pcb->cnx);
 }
 
 /*
@@ -121,15 +121,15 @@ s16_t get_rto(struct tcp_pcb *pcb) {
     return pcb->rto;
 }
 
-s16_t get_rto_max(struct tcp_pcb *pcb) {
+s16_t get_rto_max(tcp_ubpf_cnx_t *cnx) {
     /* TODO: modify using TCP_TMR_INTERVAL */
-    printf("Returning rto_max: %d\n", pcb->rto_max);
-    return pcb->rto_max;
+    printf("Returning rto_max: %d\n", cnx->rto_max);
+    return cnx->rto_max;
 }
 
-void set_rto_max(struct tcp_pcb *pcb, u16_t timeout) {
+void set_rto_max(tcp_ubpf_cnx_t *cnx, u16_t timeout) {
     /* TODO: modify using TCP_TMR_INTERVAL */
-    pcb->rto_max = timeout;
+    cnx->rto_max = timeout;
     printf("rto_max set to %u\n", timeout);
     printf("rto_max set to 0x%x\n", timeout);
 }

@@ -51,9 +51,24 @@ static void usage(const char *name)
 }
 */
 
+void set_use_uto_option() {
+    use_uto_option = true;
+    /* Should read the value from a file ... */
+    ebpf_options_length_options_negotiation += 4;
+    ebpf_options_length += 4;
+    printf("Set_use_uto_option, ebpf_options_length: %u\n", ebpf_options_length);
+}
+
+void set_use_rto_option() {
+    use_rto_option = true;
+    /* Should read the value from a file ... */
+    ebpf_options_length_options_negotiation += 8;
+    ebpf_options_length += 8;
+}
+
 /* TODO: This function SHOULD be merged with the other one, but how do we know that we have to multiply the value by TCP_SLOW_INTERVAL? */
-int ebpf_should_drop_connection_UTO(struct tcp_pcb *pcb) { /* u64_t time_waiting_unacked */
-    printf("ebpf_should_drop_connection_UTO\n");
+int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb) { /* u64_t time_waiting_unacked */
+    printf("ebpf_should_drop_connection_rto\n");
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/ebpf_should_drop_connection_UTO.bpf";
     /* LWIP_UNUSED_ARG(time_waiting_unacked); */
     return run_ubpf_with_args(pcb, code_filename);
@@ -61,9 +76,36 @@ int ebpf_should_drop_connection_UTO(struct tcp_pcb *pcb) { /* u64_t time_waiting
 
 int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt) {
     printf("ebpf_parse_tcp_option\n");
+    /* TODO: temporary options: those should be taken care of separately */
+
+    const char *code_filename;
+
+    if (opt == 253 || opt == 254) {
+        u8_t option_length = tcp_get_next_optbyte();
+        u16_t exID = custom_ntohs(tcp_get_next_optbyte() | (tcp_get_next_optbyte() << 8));
+        if (opt == 253) {
+            code_filename = ebpf_options_parser_bpf_code_253[exID];
+        } else { /* opt == 254 */
+            code_filename = ebpf_options_parser_bpf_code_254[exID];
+        }
+        if (code_filename) return run_ubpf_with_args(pcb, code_filename, option_length);
+        else {
+            printf("No parser corresponds to opt %u and ExID 0x%x\n", opt, exID);
+            return ERR_ARG; /* Unknown TCP option is being used */
+        }
+    } else {
+        code_filename = ebpf_options_parser_bpf_code[opt];
+        if (code_filename) return run_ubpf_with_args(pcb, code_filename);
+        else {
+            printf("No parser corresponds to opt %u\n", opt);
+            return ERR_ARG; /* Unknown TCP option is being used */
+        }
+    }
+
+    /*
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/parse_tcp_option.bpf";
     LWIP_UNUSED_ARG(opt);
-    return run_ubpf_with_args(pcb, code_filename);
+    return run_ubpf_with_args(pcb, code_filename); */
 }
 
 u32_t *ebpf_write_tcp_uto_option(struct tcp_pcb *pcb, u32_t *opts) { /* TODO: use VA_ARGS for passing multiple options to the ebpf function? */
@@ -73,15 +115,47 @@ u32_t *ebpf_write_tcp_uto_option(struct tcp_pcb *pcb, u32_t *opts) { /* TODO: us
      *                but is that functional?...
      */
     printf("ebpf_write_tcp_uto_option\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/write_tcp_option.bpf";
+    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/write_tcp_uto_option.bpf";
     printf("ebpf_write_tcp_uto_option: Before calling run_ubpf_with_args, opts is at %p\n", opts);
     return run_ubpf_with_args(pcb, code_filename, opts);
 }
 
+u32_t *ebpf_write_tcp_rto_option(struct tcp_pcb *pcb, u32_t *opts) {
+    printf("ebpf_write_tcp_rto_option\n");
+    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/write_tcp_rto_option.bpf";
+    printf("ebpf_write_tcp_rto_option: Before calling run_ubpf_with_args, opts is at %p\n", opts);
+    return run_ubpf_with_args(pcb, code_filename, opts);
+}
+
+u32_t *ebpf_write_tcp_options(struct tcp_pcb *pcb, u32_t *opts) {
+    printf("in write_tcp_options, opts: %p\n", opts);
+    if (use_uto_option) {
+        opts = ebpf_write_tcp_uto_option(pcb, opts);
+    } else {
+        printf("didn't call \n");
+    }
+    if (use_rto_option) {
+        opts = ebpf_write_tcp_rto_option(pcb, opts);
+    } else {
+        printf("didn't call 2 \n");
+    }
+    return opts;
+}
+
 u8_t ebpf_get_options_length(struct tcp_pcb *pcb) {
+    /*
     printf("ebpf_get_options_length\n");
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/ebpf_get_options_length.bpf";
-    return run_ubpf_with_args(pcb, code_filename);
+    u8_t ret = run_ubpf_with_args(pcb, code_filename);
+    printf("ebpf_get_options_length, returning : %u\n", ret);
+    printf("ebpf_get_options_length: returning directly from cnx: %u\n", (pcb->cnx).ebpf_options_length);
+    return (pcb->cnx).ebpf_options_length; */
+    if (pcb->state <= SYN_RCVD) {
+        printf("Returning ebpf_options_length (options negotiation): %u\n", ebpf_options_length_options_negotiation);
+        return ebpf_options_length_options_negotiation;
+    }
+    printf("Returning ebpf_options_length: %u\n", ebpf_options_length);
+    return ebpf_options_length;
 }
 
 int ebpf_is_ack_needed(struct tcp_pcb *pcb) {
@@ -110,7 +184,9 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
 
     va_end(ap);
 
-    tcp_ubpf_cnx_t cnx = {.pcb = pcb, .inputc = n_args, .inputv = args};
+    pcb->cnx.inputc = n_args;
+    pcb->cnx.inputv = args;
+
     const char *mem_filename = NULL;
     bool jit = false;
 
@@ -186,7 +262,7 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
         ret = fn(mem, mem_len);
     } else {
         printf("jit not used\n"); fflush(NULL); /* TODO: erase */
-        ret = ubpf_exec_with_arg(vm, &cnx, mem, mem_len);
+        ret = ubpf_exec_with_arg(vm, pcb, mem, mem_len);
     }
 
     printf("0x%"PRIx64"\n", ret);
@@ -310,15 +386,35 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, function_index++, "set_rto_max", set_rto_max);
     ubpf_register(vm, function_index++, "get_rto", get_rto);
     ubpf_register(vm, function_index++, "help_printf_sint16_t", help_printf_sint16_t);
-    ubpf_register(vm, function_index++, "get_pcb", get_pcb);
+    ubpf_register(vm, function_index++, "get_cnx", get_cnx);
     ubpf_register(vm, function_index++, "get_input", get_input);
 
 
 
 
 
-    
+
 
 
     ubpf_register(vm, 63, "membound_fail", membound_fail);
+}
+
+void ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID) {
+    /* TODO: handle the temporary options case where multiple parser could belond to the same option */
+    char **options_parser;
+    printf("Got registration for opt %u, exID: %x\n", opt, exID);
+    if (opt == 253) {
+        options_parser = &(ebpf_options_parser_bpf_code_253[exID]);
+    } else if (opt == 254) {
+        options_parser = &(ebpf_options_parser_bpf_code_254[exID]);
+    } else {
+        options_parser = &(ebpf_options_parser_bpf_code[opt]);
+    }
+    *options_parser = malloc(strlen(code_filename) + 1);
+    strcpy(*options_parser, code_filename);
+    printf("options_parser is now: %s\n", *options_parser);
+    if (opt != 253 && opt != 254) {
+        printf("ebpf_options_parser_bpf_code[%u]:\n",opt);
+        printf("%s\n", ebpf_options_parser_bpf_code[opt]);
+    }
 }

@@ -237,6 +237,19 @@ struct tcp_pcb_listen {
 #endif /* TCP_LISTEN_BACKLOG */
 };
 
+/* Context structure, needed for plugins */
+typedef struct {
+
+  /* Number of inputs for the plugin */
+  int inputc;
+
+  /* Actual inputs, all converted to uint64_t in order to allow for pointers */
+  uint64_t *inputv;
+
+  /* Fields required for the plugins to operate */
+  s16_t rto_max; /* max value of retransmission time-out allowed (in ticks of TCP_SLOW_INTERVAL) */
+
+} tcp_ubpf_cnx_t;
 
 /** the TCP protocol control block */
 struct tcp_pcb {
@@ -244,6 +257,9 @@ struct tcp_pcb {
   IP_PCB;
 /** protocol specific PCB members */
   TCP_PCB_COMMON(struct tcp_pcb);
+
+/** Context of the TCP connexion, important for plugins */
+  tcp_ubpf_cnx_t cnx;
 
   /* ports are in host byte order */
   u16_t remote_port;
@@ -278,6 +294,9 @@ struct tcp_pcb {
   u8_t polltmr, pollinterval;
   u8_t last_timer;
   u32_t tmr;
+  u32_t last_ack_received_tmr; /* time when the last packet acknowledging new data was received */
+
+  u64_t user_timeout; /* time after which the connexion is considered as timed out (in milliseconds) */
 
   /* receiver variables */
   u32_t rcv_nxt;   /* next seqno expected */
@@ -303,7 +322,6 @@ struct tcp_pcb {
   s16_t sa, sv; /* @see "Congestion Avoidance and Control" by Van Jacobson and Karels */
 
   s16_t rto;      /* retransmission time-out (in ticks of TCP_SLOW_INTERVAL) */
-  s16_t rto_max;  /* max value of retransmission time-out allowed (in ticks of TCP_SLOW_INTERVAL) */
   u8_t nrtx;      /* number of retransmissions */
 
   /* fast retransmit/recovery */
@@ -389,20 +407,6 @@ struct tcp_pcb {
   u8_t rcv_scale;
 #endif
 };
-
-/* Context structure, needed for plugins */
-typedef struct {
-
-  /* TCP PCB on which the plugin will operate */
-  struct tcp_pcb *pcb;
-
-  /* Number of inputs for the plugin */
-  int inputc;
-
-  /* Actual inputs, all converted to uint64_t in order to allow for pointers */
-  uint64_t *inputv;
-
-} tcp_ubpf_cnx_t;
 
 #if LWIP_EVENT_API
 

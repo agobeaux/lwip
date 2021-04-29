@@ -1382,9 +1382,15 @@ tcp_slowtmr_start:
 
     /* TCP_SLOW_INTERVAL not used as the threshold is pcb->rto_max which should also be in ticks... -> API function should take care of this */
 
-    if (ebpf_should_drop_connection_UTO(pcb)) {
+    if (ebpf_should_drop_connection_rto(pcb)) {
       ++pcb_remove;
       LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: removing pcb because of eBPF plugins UTO\n"));
+    }
+
+    /* If there is unacknowledged data and the time between now and the last segment acknowledging new data is greater than UTO, timeout */
+    if (pcb->snd_nxt != pcb->lastack &&(u32_t)(tcp_ticks - pcb->last_ack_received_tmr) > pcb->user_timeout / TCP_SLOW_INTERVAL) {
+      ++pcb_remove;
+      LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: removing pcb because of user timeout\n"));
     }
 
 
@@ -1911,11 +1917,11 @@ tcp_alloc(u8_t prio)
        The send MSS is updated when an MSS option is received. */
     pcb->mss = INITIAL_MSS;
     pcb->rto = 3000 / TCP_SLOW_INTERVAL;
-    pcb->rto_max = 1 << 14; /* Init to max positive value of rto */
     pcb->sv = 3000 / TCP_SLOW_INTERVAL;
     pcb->rtime = -1;
     pcb->cwnd = 1;
     pcb->tmr = tcp_ticks;
+    pcb->last_ack_received_tmr = tcp_ticks;
     pcb->last_timer = tcp_timer_ctr;
 
     /* RFC 5681 recommends setting ssthresh arbitrarily high and gives an example
@@ -1933,10 +1939,16 @@ tcp_alloc(u8_t prio)
     /* Init KEEPALIVE timer */
     pcb->keep_idle  = TCP_KEEPIDLE_DEFAULT;
 
+    /* Init user timeout */
+    pcb->user_timeout = TCP_USER_TIMEOUT_DEFAULT;
+
 #if LWIP_TCP_KEEPALIVE
     pcb->keep_intvl = TCP_KEEPINTVL_DEFAULT;
     pcb->keep_cnt   = TCP_KEEPCNT_DEFAULT;
 #endif /* LWIP_TCP_KEEPALIVE */
+
+    /* Initiliaze cnx attributes */
+    (pcb->cnx).rto_max = 1 << 15 - 1; /* Init to max positive value of rto */
   }
   return pcb;
 }

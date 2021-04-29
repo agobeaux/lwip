@@ -353,12 +353,6 @@ test_netif_init(void)
 #endif /* PPPOS_SUPPORT */
 #endif  /* USE_PPP */
 
-printf("heyhey, trying\n");
-/*run_ubpf();*/
-/* TODO: if I delete previous line, tcp_out.c does not compile,
-         even if I let the include of library
-*/
-
 #if USE_ETHERNET
 #if LWIP_IPV4
   ip4_addr_set_zero(&gw);
@@ -366,6 +360,19 @@ printf("heyhey, trying\n");
   ip4_addr_set_zero(&netmask);
   ipaddr.addr = 0x0401A8C0UL; /* address 192.168.1.4 0x0401A8C0UL*/
   netmask.addr = 0X00FFFFFFUL;
+
+  /* Plugins used */
+  ubpf_register_tcp_option_parser(
+    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/parse_tcp_option.bpf",
+    28,
+    0 /* useless param here */
+  );
+  ubpf_register_tcp_option_parser(
+    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/parse_tcp_rto_option.bpf",
+    253,
+    0x12EF
+  );
+
 #if USE_ETHERNET_TCPIP
 #if USE_DHCP
   printf("Starting lwIP, local interface IP is dhcp-enabled\n");

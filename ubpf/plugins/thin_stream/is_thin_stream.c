@@ -12,8 +12,7 @@
  *						2. we approximate the number of packets out by checking the number of unacked
  *							 bytes and dividing it by the current TCP_MSS
  */
-u8_t is_thin_stream(tcp_ubpf_cnx_t *cnx) {
-	struct tcp_pcb *pcb = get_pcb(cnx);
+u8_t is_thin_stream(struct tcp_pcb *pcb) {
 	u32_t next_seqno = get_next_seqno(pcb);
 	u32_t last_acked_seqno = get_last_acked_seqno(pcb);
 	u32_t mss = (u32_t) get_mss(pcb);

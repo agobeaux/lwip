@@ -4,9 +4,9 @@
 #include "getset.h"
 
 #define TCP_OPT_UTO 28 /* User TimeOut option kind: 28 */
-int parse_tcp_option(tcp_ubpf_cnx_t *cnx) {
+int parse_tcp_uto_option(struct tcp_pcb *pcb) {
 	/* In this function, we parse the different TCP options that we can */
-	struct tcp_pcb *pcb = get_pcb(cnx);
+	tcp_ubpf_cnx_t *cnx = get_cnx(pcb);
 	u8_t granularity;
 	u16_t timeout;
 	//help_printf_str("opt in ubpf is: "); help_printf_uint8_t(opt);
@@ -25,7 +25,7 @@ int parse_tcp_option(tcp_ubpf_cnx_t *cnx) {
 			timeout &= 0x7fff; // filter out the granularity part
 			help_printf_str("granularity received :");
 			help_printf_uint8_t(granularity);
-			set_rto_max(pcb, timeout);
+			set_rto_max(cnx, timeout);
 			//pcb->rto_max = timeout; /* TODO: should be replaced by a setter to allow flexibility */
 			/* TODO: what to do about granularity ?*/
 			// TODO: update uto in pcb?

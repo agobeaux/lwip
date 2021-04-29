@@ -19,10 +19,49 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <stdbool.h>
 
 #include "lwip/tcp.h"
 
 #include<stdarg.h> /* VA_ARGS, va_arg(ap, type) etc */
+
+/*
+ * Enable/disable some plugins
+ * Not scalable, more scalable way: like PQUIC, enable by putting the path to the plugin folder
+ */
+bool use_uto_option;
+bool use_rto_option;
+
+
+/* Each entry is either NULL if the index does not correspond to an option that could be parsed by an eBPF plugin
+ * currently used, or it is the filename of the plugin that can parse the said option.
+ * TODO: take care of the special case of temporary options that allow multiple options
+ * TODO: move this to the tcp_pcb/context as it should be per-connection based. Makes sense if we can launch multiple apps
+ *       operating on different addresses (which I am not sure if it is the case).
+ */
+char *ebpf_options_parser_bpf_code[256];
+
+/*
+ * Experimental Options case: two buffers are needed. Those are similar to the previous one
+ * as the ExID is 16 bits longs.
+ */
+char *ebpf_options_parser_bpf_code_253[256];
+char *ebpf_options_parser_bpf_code_254[256];
+
+/*
+ * Those variables contain the options length for packets sent either during the options negotiation
+ * or after these negotiations.
+ * Current hypothesis: Options are either written once (options negotiation) or every time. Plugins can't adapt
+ * to the situation.
+ *
+ * If this no longer holds: a solution would be to do the write checks before allocating the outgoing segment
+ * and compute the length at this time, before allocating the pbuf. Then, only call the functions that returned true
+ * on the write check. Bit more complex but more flexible.
+ *
+ * Those are considered to be global and not be part of a tcp_pcb or a tcp_ubpf_cnx_t.
+ */
+int ebpf_options_length_options_negotiation;
+int ebpf_options_length;
 
 /* Helps to find the number of arguments in __VA_ARGS__ (up to 9 arguments though) */
 /* Works by the fact that in N_ARGS_HELPER2, we put to the trash the first 9 elements
@@ -101,6 +140,11 @@ ubpf_jit_fn ubpf_compile(struct ubpf_vm *vm, char **errmsg);
 
 /* FUNCTIONS DEFINED BEFORE = LIBRARY */
 
+/* Use the UTO option writer */
+void set_use_uto_option();
+
+/* Use the RTO option writer */
+void set_use_rto_option();
 
 /*
  * TODO: This function SHOULD be merged with the other one, but how do we know that we have to multiply the value by TCP_SLOW_INTERVAL?
@@ -110,7 +154,7 @@ ubpf_jit_fn ubpf_compile(struct ubpf_vm *vm, char **errmsg);
  *      Well, we could want to have this set higher!... Should define the variable which holds the timeout value!
  *      UPDATE: Maybe we do not want that, this timer is for the TIME_WAIT state which is a closing one.
  */
-int ebpf_should_drop_connection_UTO(struct tcp_pcb *pcb); /* u64_t time_waiting_unacked */
+int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb); /* u64_t time_waiting_unacked */
 
 /*
  * Parses tcp options
@@ -122,6 +166,15 @@ int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt);
  */
 u32_t *ebpf_write_tcp_uto_option(struct tcp_pcb *pcb, u32_t *opts);
 
+/*
+ * Writes custom tcp option that puts a limit on the value or the retransmission timer rto
+ */
+u32_t *ebpf_write_tcp_rto_option(struct tcp_pcb *pcb, u32_t *opts);
+
+/*
+ * Writes the different TCP options that are enabled
+ */
+u32_t *ebpf_write_tcp_options(struct tcp_pcb *pcb, u32_t *opts);
 /*
  * Returns the length of the TCP options defined in the plugins. Only User TimeOut for now
  */
@@ -141,5 +194,12 @@ int ebpf_is_thin_stream(struct tcp_pcb *pcb);
  * Like run_ubpf but with extensible args
  */
 uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_args, ...);
+
+/*
+ * This function adds an eBPF option parser that correponds to a certain option.
+ * This function should not be called twice with the same option or memory leaks will happen.
+ * exID is only used with experimental options; this parameter is ignored when using a traditional tcp option.
+ */
+void ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID);
 
 #endif

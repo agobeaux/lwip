@@ -5,7 +5,7 @@
 /*
  * Returns the pcb corresponding to the tcp_ubpf context
  */
-struct tcp_pcb *get_pcb(tcp_ubpf_cnx_t *cnx);
+tcp_ubpf_cnx_t *get_cnx(struct tcp_pcb *pcb);
 /*
  * Returns the (index+1)th input passed to the tcp_ubpf context or NULL if it is out of range
  */
@@ -51,8 +51,8 @@ void set_opt(u32_t *opts, int index, u32_t value);
 
 s16_t get_rto(struct tcp_pcb *pcb);
 
-s16_t get_rto_max(struct tcp_pcb *pcb);
+s16_t get_rto_max(tcp_ubpf_cnx_t *cnx);
 
-void set_rto_max(struct tcp_pcb *pcb, u16_t timeout);
+void set_rto_max(tcp_ubpf_cnx_t *cnx, u16_t timeout);
 
 void membound_fail(uint64_t val, uint64_t mem_ptr, uint64_t stack_ptr);

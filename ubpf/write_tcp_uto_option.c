@@ -7,7 +7,7 @@
 /* TODO: déclarer les fonctions dans un fichier header */
 
 #define TCP_OPT_UTO 28 /* User TimeOut option kind: 28 */
-u32_t *write_tcp_uto_option(tcp_ubpf_cnx_t *cnx) {
+u32_t *write_tcp_uto_option(struct tcp_pcb *pcb) {
 	/*
 	help_printf_str("Printing what is got directly");
 	help_printf_ptr(get_input(cnx, 0));
@@ -21,6 +21,7 @@ u32_t *write_tcp_uto_option(tcp_ubpf_cnx_t *cnx) {
 	uint64_t *opts64 = (uint64_t *) get_input(cnx, 0);
 	help_printf_str("I'm in write_tcp_uto_option, address of opts64");
 	*/
+	tcp_ubpf_cnx_t *cnx = get_cnx(pcb);
 	u32_t *opts = (u32_t *)get_input(cnx, 0);
 	if (opts == NULL) {
 		help_printf_str("uBPF: write_tcp_uto_option: input opts could not be retrieved");

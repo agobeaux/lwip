@@ -1392,6 +1392,7 @@ tcp_output(struct tcp_pcb *pcb)
       tcp_clear_flags(pcb, TF_ACK_DELAY | TF_ACK_NOW);
     }
     snd_nxt = lwip_ntohl(seg->tcphdr->seqno) + TCP_TCPLEN(seg);
+    bool has_unacked_data = (pcb->snd_nxt != pcb->lastack);
     if (TCP_SEQ_LT(pcb->snd_nxt, snd_nxt)) {
       pcb->snd_nxt = snd_nxt;
     }
@@ -1400,6 +1401,10 @@ tcp_output(struct tcp_pcb *pcb)
       seg->next = NULL;
       /* unacked list is empty? */
       if (pcb->unacked == NULL) {
+        if (!has_unacked_data && pcb->snd_nxt != pcb->lastack) {
+          /* Before this segment, every data sent was acked. Now, not anymore => reset last_ack_received_tmr */
+          pcb->last_ack_received_tmr = tcp_ticks;
+        }
         pcb->unacked = seg;
         useg = seg;
         /* unacked list is not empty? */
@@ -1549,7 +1554,7 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb, struct netif *netif
     *(opts++) = PP_HTONL(0x01010402);
   }
 #endif
-  opts = ebpf_write_tcp_uto_option(pcb, opts);
+  opts = ebpf_write_tcp_options(pcb, opts);
 
   /* Set retransmission timer running if it is not currently enabled
      This must be set before checking the route. */
@@ -1926,7 +1931,7 @@ tcp_output_fill_options(struct tcp_pcb *pcb, struct pbuf *p, u8_t optflags, u8_t
 #ifdef LWIP_HOOK_TCP_OUT_ADD_TCPOPTS
   opts = LWIP_HOOK_TCP_OUT_ADD_TCPOPTS(p, tcphdr, pcb, opts);
 #endif
-  opts = ebpf_write_tcp_uto_option(pcb, opts);
+  opts = ebpf_write_tcp_options(pcb, opts);
 
   LWIP_UNUSED_ARG(pcb);
   LWIP_UNUSED_ARG(sacks_len);
@@ -2199,8 +2204,13 @@ tcp_zero_window_probe(struct tcp_pcb *pcb)
 
   /* The byte may be acknowledged without the window being opened. */
   snd_nxt = lwip_ntohl(seg->tcphdr->seqno) + 1;
+  bool has_unacked_data = (pcb->snd_nxt != pcb->lastack);
   if (TCP_SEQ_LT(pcb->snd_nxt, snd_nxt)) {
     pcb->snd_nxt = snd_nxt;
+  }
+  if (!has_unacked_data && pcb->snd_nxt != pcb->lastack) {
+    /* Before this segment, every data sent was acked. Now, not anymore => reset last_ack_received_tmr */
+    pcb->last_ack_received_tmr = tcp_ticks;
   }
   tcp_output_fill_options(pcb, p, 0, 0);
 

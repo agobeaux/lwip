@@ -2,8 +2,7 @@
 #include "lwip/tcp.h"
 #include "getset.h"
 
-int is_ack_needed(tcp_ubpf_cnx_t *cnx) {
-	struct tcp_pcb *pcb = get_pcb(cnx);
+int is_ack_needed(struct tcp_pcb *pcb) {
 	char *str = "Currently launching eBPF function is_ack_needed!\n";
 	help_printf_str(str);
 
@@ -18,7 +17,7 @@ int is_ack_needed(tcp_ubpf_cnx_t *cnx) {
 
 	u8_t num_rcv_unacked = get_num_rcv_unacked(pcb);
 	help_printf_uint8_t(num_rcv_unacked);
-	help_printf_uint32_t(get_tmr(pcb));
+	/* help_printf_uint32_t(get_tmr(pcb)); */
 	//help_printf_uint32_t(pcb->tmr);
 	//pcb->inactivity_timeout = pcb->tmr;
 	// and if delayed acks are not used??
