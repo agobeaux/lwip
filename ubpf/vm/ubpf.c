@@ -192,7 +192,7 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
 
     size_t code_len;
     void *code;
-    
+
     size_t mem_len = 20000; /* TODO: change this value */
     void *mem = (void*) malloc(20000);
 
@@ -201,7 +201,7 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
     uint64_t ret;
 
     printf("Beginning of run_ubpf()\n"); fflush(NULL); /* TODO: erase */
-    
+
     code = readfile(code_filename, 1024*1024, &code_len);
     if (code == NULL) {
         return 1;
@@ -213,7 +213,6 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
             return 1;
         }
     }
-    
 
     vm = ubpf_create();
     if (!vm) {
@@ -223,7 +222,7 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
 
     register_functions(vm);
 
-    /* 
+    /*
      * The ELF magic corresponds to an RSH instruction with an offset,
      * which is invalid.
      */
@@ -231,7 +230,7 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
 
     char *errmsg;
     int rv;
-    
+
     ubpf_jit_fn fn;
 
     if (elf) {
@@ -280,7 +279,7 @@ static void *readfile(const char *path, size_t maxlen, size_t *len)
 
     size_t offset;
     size_t rv;
-    
+
     if (!strcmp(path, "-")) {
         file = fdopen(STDIN_FILENO, "r");
     } else {
