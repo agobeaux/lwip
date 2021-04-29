@@ -3,9 +3,26 @@
 # Stop on error
 set -e
 
-server_rate=1024
-client_rate=40960
+server_rate=1
+client_rate="NOLIMIT"
+bitrate=2000
+burst=200
 ACK_THRESHOLD=2
+
+
+# iptables rules to update the transfers coming from tap0, tap1 and lwipbridge
+if !(sudo iptables -L -v -n | grep -q "tap0"); then
+  echo "SETTING IPTABLES RULES !!!"
+  sudo iptables -I FORWARD 1 -i lwipbridge -j ACCEPT
+  sudo iptables -I FORWARD 1 -i tap0 -j ACCEPT
+  sudo iptables -I FORWARD 1 -i tap1 -j ACCEPT
+
+  sudo iptables -I INPUT 1 -i lwipbridge -j ACCEPT
+  sudo iptables -I INPUT 1 -i tap0 -j ACCEPT
+  sudo iptables -I INPUT 1 -i tap1 -j ACCEPT
+else
+  echo "Not setting IPTABLES rules"
+fi
 
 # Compile delayed_ack_plugin; should be done by the server since it impacts the server
 # At the moment, not a problem since eBPF codes are not preloaded!
@@ -16,12 +33,12 @@ if !(ifconfig | grep -q "tap0") || !(ifconfig | grep -q "tap1"); then
   echo "Creating interfaces"
   sudo ./contrib/ports/unix/setup-tapif
 fi
-# Compile server and client
-# TODO
 
 # Modify bandwidth of the transfer
-sudo tc qdisc replace dev tap0 root tbf rate ${server_rate}kbit latency 0.1ms burst 10000000
-sudo tc qdisc replace dev tap1 root tbf rate ${client_rate}kbit latency 0.1ms burst 10000000
+if (tc class show dev tap1 parent 5:0 | grep -q "class htb"); then
+  sudo tc qdisc delete dev tap1 root handle 5:0 htb default 1
+fi
+sudo tc qdisc add dev tap1 root handle 5:0 htb default 1; sudo tc class add dev tap1 parent 5:0 classid 5:1 htb rate ${bitrate}bit burst ${burst}
 
 # Compile lwiperf server and client
 cd build
@@ -51,7 +68,7 @@ timeout 35s sudo  ./build/contrib/ports/unix/example_app_client/example_app_clie
 
 # Append result to file
 #grep -a "IPERF report" server_delayed_ack.out >> server_delayed_ack_perf_ackrate_${ACK_THRESHOLD}servrate_${server_rate}clirate_${client_rate}.txt
-grep -a "IPERF report" client_delayed_ack.out >> client_delayed_ack_perf_ackrate_${ACK_THRESHOLD}servrate_${server_rate}clirate_${client_rate}.txt
+grep -a "IPERF report" client_delayed_ack.out >> client_delayed_ack_perf_ackrate_${ACK_THRESHOLD}_servrate_${server_rate}_clirate_${client_rate}_bitrate_${bitrate}_burst_${burst}.txt
 
 echo "Performance of this transfer:"
-tail -n 1 client_delayed_ack_perf_ackrate_${ACK_THRESHOLD}servrate_${server_rate}clirate_${client_rate}.txt
+tail -n 1 client_delayed_ack_perf_ackrate_${ACK_THRESHOLD}_servrate_${server_rate}_clirate_${client_rate}_bitrate_${bitrate}_burst_${burst}.txt
