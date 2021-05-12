@@ -76,29 +76,66 @@ int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb) { /* u64_t time_waiting
 
 int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt) {
     printf("ebpf_parse_tcp_option\n");
-    /* TODO: temporary options: those should be taken care of separately */
-
     const char *code_filename;
+    printf("Before returning ERR_ARG in ebpf_parse_tcp_option\n");
+    return ERR_ARG;
+    printf("Checking opt\n");
+    u16_t previous_tcp_optidx = tcp_optidx;
+    u8_t option_length = tcp_get_next_optbyte();
+
+    if (option_length < 2) {
+        LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: bad length\n"));
+        /* If the length field is zero, the options are malformed
+        and we don't process them further. */
+        return ERR_ARG;
+    }
 
     if (opt == 253 || opt == 254) {
-        u8_t option_length = tcp_get_next_optbyte();
         u16_t exID = custom_ntohs(tcp_get_next_optbyte() | (tcp_get_next_optbyte() << 8));
         if (opt == 253) {
             code_filename = ebpf_options_parser_bpf_code_253[exID];
         } else { /* opt == 254 */
             code_filename = ebpf_options_parser_bpf_code_254[exID];
         }
-        if (code_filename) return run_ubpf_with_args(pcb, code_filename, option_length);
+        if (code_filename) {
+            printf("code_filename exp: %s\n", code_filename);
+            uint64_t ret = run_ubpf_with_args(pcb, code_filename, option_length);
+            if (ret == (uint64_t)-1) {
+                /* VM crashed here */
+                return ERR_ARG;
+            }
+            tcp_optidx = previous_tcp_optidx + option_length;
+            return ERR_OK;
+        }
         else {
             printf("No parser corresponds to opt %u and ExID 0x%x\n", opt, exID);
-            return ERR_ARG; /* Unknown TCP option is being used */
+            /* Skip the option */
+            tcp_optidx = previous_tcp_optidx + option_length;
+            /* All other options have a length field, so that we easily
+              can skip past them. */
+
+            return ERR_VAL; /* Unknown TCP option is being used */
         }
     } else {
         code_filename = ebpf_options_parser_bpf_code[opt];
-        if (code_filename) return run_ubpf_with_args(pcb, code_filename);
+        if (code_filename) {
+            printf("code_filename non-exp: %s\n", code_filename);
+            uint64_t ret = run_ubpf_with_args(pcb, code_filename, option_length);// ,NULL);
+            if (ret == (uint64_t)-1) {
+                /* VM crashed here */
+                return ERR_ARG;
+            }
+            tcp_optidx = previous_tcp_optidx + option_length;
+            return ERR_OK;
+        }
         else {
             printf("No parser corresponds to opt %u\n", opt);
-            return ERR_ARG; /* Unknown TCP option is being used */
+            /* Skip the option */
+            tcp_optidx = previous_tcp_optidx + option_length;
+            /* All other options have a length field, so that we easily
+              can skip past them. */
+
+            return ERR_VAL; /* Unknown TCP option is being used */
         }
     }
 
@@ -204,20 +241,26 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
 
     code = readfile(code_filename, 1024*1024, &code_len);
     if (code == NULL) {
-        return 1;
+        if (mem) {
+            free(mem);
+        }
+        return (uint64_t)-1;
     }
 
     if (mem_filename != NULL) {
         mem = readfile(mem_filename, 1024*1024, &mem_len);
         if (mem == NULL) {
-            return 1;
+            return (uint64_t)-1;
         }
     }
 
     vm = ubpf_create();
     if (!vm) {
+        if (mem) {
+            free(mem);
+        }
         fprintf(stderr, "Failed to create VM\n");
-        return 1;
+        return (uint64_t)-1;
     }
 
     register_functions(vm);
@@ -244,8 +287,11 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
     if (rv < 0) {
         fprintf(stderr, "Failed to load code: %s\n", errmsg);
         free(errmsg);
+        if (mem) {
+            free(mem);
+        }
         ubpf_destroy(vm);
-        return 1;
+        return (uint64_t)-1;
     }
 
     printf("Before JIT\n"); fflush(NULL); /* TODO: erase */
@@ -254,9 +300,12 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
         printf("jit is true\n"); fflush(NULL); /* TODO: erase */
         fn = ubpf_compile(vm, &errmsg);
         if (fn == NULL) {
+            if (mem) {
+                free(mem);
+            }
             fprintf(stderr, "Failed to compile: %s\n", errmsg);
             free(errmsg);
-            return 1;
+            return (uint64_t)-1;
         }
         ret = fn(mem, mem_len);
     } else {
@@ -265,7 +314,9 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
     }
 
     printf("0x%"PRIx64"\n", ret);
-
+    if (mem) {
+        free(mem);
+    }
     ubpf_destroy(vm);
 
     return ret; /* TODO: change, should not return int but something else, protooop_arg_t like PQUIC */
@@ -383,6 +434,8 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, function_index++, "tcp_get_next_optbyte", tcp_get_next_optbyte);
     ubpf_register(vm, function_index++, "get_rto_max", get_rto_max);
     ubpf_register(vm, function_index++, "set_rto_max", set_rto_max);
+    ubpf_register(vm, function_index++, "get_user_timeout", get_user_timeout);
+    ubpf_register(vm, function_index++, "set_user_timeout", set_user_timeout);
     ubpf_register(vm, function_index++, "get_rto", get_rto);
     ubpf_register(vm, function_index++, "help_printf_sint16_t", help_printf_sint16_t);
     ubpf_register(vm, function_index++, "get_cnx", get_cnx);

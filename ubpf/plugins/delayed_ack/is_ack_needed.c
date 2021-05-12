@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "lwip/tcp.h"
-#include "getset.h"
 
 int is_ack_needed(struct tcp_pcb *pcb) {
 	char *str = "Currently launching eBPF function is_ack_needed!\n";

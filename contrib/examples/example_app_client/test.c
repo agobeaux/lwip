@@ -363,7 +363,7 @@ test_netif_init(void)
 
   /* Plugins used */
   ubpf_register_tcp_option_parser(
-    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/parse_tcp_option.bpf",
+    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/parse_tcp_uto_option.bpf",
     28,
     0 /* useless param here */
   );

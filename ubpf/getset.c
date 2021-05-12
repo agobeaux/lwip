@@ -134,6 +134,19 @@ void set_rto_max(tcp_ubpf_cnx_t *cnx, u16_t timeout) {
     printf("rto_max set to 0x%x\n", timeout);
 }
 
+u64_t get_user_timeout(struct tcp_pcb *pcb) {
+    /* TODO: modify using TCP_TMR_INTERVAL */
+    printf("Returning user_timeout: %u\n", pcb->user_timeout);
+    return pcb->user_timeout;
+}
+
+void set_user_timeout(struct tcp_pcb *pcb, u64_t timeout) {
+    /* TODO: modify using TCP_TMR_INTERVAL */
+    pcb->user_timeout = timeout;
+    printf("user_timeout set to %u\n", timeout);
+    printf("user_timeout set to 0x%x\n", timeout);
+}
+
 void membound_fail(uint64_t val, uint64_t mem_ptr, uint64_t stack_ptr) {
     printf("Out of bound access with val 0x%lx, start of mem is 0x%lx, top of stack is 0x%lx\n", val, mem_ptr, stack_ptr);
 }

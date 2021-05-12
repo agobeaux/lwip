@@ -258,9 +258,6 @@ struct tcp_pcb {
 /** protocol specific PCB members */
   TCP_PCB_COMMON(struct tcp_pcb);
 
-/** Context of the TCP connexion, important for plugins */
-  tcp_ubpf_cnx_t cnx;
-
   /* ports are in host byte order */
   u16_t remote_port;
 
@@ -406,6 +403,10 @@ struct tcp_pcb {
   u8_t snd_scale;
   u8_t rcv_scale;
 #endif
+
+/** Context of the TCP connexion, important for plugins */
+  tcp_ubpf_cnx_t cnx;
+
 };
 
 #if LWIP_EVENT_API

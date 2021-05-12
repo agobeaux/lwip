@@ -2009,20 +2009,10 @@ tcp_parseopt(struct tcp_pcb *pcb)
           if (err == ERR_OK) {
             LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other, parsed by eBPF\n"));
           } else if (err == ERR_VAL) {
-            LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other, parsing by eBPF crashed\n"));
-            return;
+            LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other, either no eBPF parser was found for this option or the format received was unexpected\n"));
           } else { /* ERR_ARG, if opt non recognized */
-            LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other, couldn't be parsed by eBPF\n"));
-            data = tcp_get_next_optbyte();
-            if (data < 2) {
-              LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: bad length\n"));
-              /* If the length field is zero, the options are malformed
-                and we don't process them further. */
-              return;
-            }
-            /* All other options have a length field, so that we easily
-              can skip past them. */
-            tcp_optidx += data - 2;
+            LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other, either the parsing by eBPF crashed or bad option length\n"));
+            return;
           }
           /* LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other\n")); */
 

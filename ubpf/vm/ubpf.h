@@ -158,6 +158,7 @@ int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb); /* u64_t time_waiting_
 
 /*
  * Parses tcp options
+ * Updates tcp_optidx and returns either ERR_OK if everything went fine, ERR_VAL if 
  */
 int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt);
 

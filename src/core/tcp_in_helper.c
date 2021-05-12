@@ -24,7 +24,7 @@ tcp_get_next_optbyte(void)
     u8_t *opts = (u8_t *)tcphdr + TCP_HLEN;
     printf("after setting opts\n");
     u8_t ret = opts[optidx];
-    printf("after SETTING ret !!! not problem should happen\n"); fflush(stdout);
+    printf("after SETTING ret !!! no problem should happen\n"); fflush(stdout);
     return ret;
     //return opts[optidx];
   } else {
