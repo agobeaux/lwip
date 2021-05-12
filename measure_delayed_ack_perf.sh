@@ -7,7 +7,9 @@ server_rate=1
 client_rate="NOLIMIT"
 bitrate=2000
 burst=200
-ACK_THRESHOLD=2
+ACK_THRESHOLD=3
+
+echo "This script is meant to be sourced as sudo (didn't work otherwise with timeout function)"
 
 
 # iptables rules to update the transfers coming from tap0, tap1 and lwipbridge
@@ -48,6 +50,9 @@ cd build
 rm -f ./build/contrib/ports/unix/example_app_client/example_app_client
 cmake .. -DCLIENT_OR_SERVER=CLIENT; cmake --build .
 
+rm -f ./build/contrib/ports/unix/example_app/example_app
+cmake .. -DCLIENT_OR_SERVER=SERVER; cmake --build .
+
 cd ..
 
 # Launch lwiperf server and client
@@ -58,7 +63,14 @@ cd ..
 #sudo  ./build/contrib/ports/unix/example_app_client/example_app_client >client_delayed_ack.out 2>client_delayed_ack.err &
 #sudo ./launch-client.sh &
 
-timeout 35s sudo  ./build/contrib/ports/unix/example_app_client/example_app_client >client_delayed_ack.out 2>client_delayed_ack.err || echo "Client timed out"
+timeout 40s sudo ./build/contrib/ports/unix/example_app/example_app >server_delayed_ack.out 2>server_delayed_ack.err &
+server_PID=$!
+
+
+timeout 35s sudo  ./build/contrib/ports/unix/example_app_client/example_app_client >client_delayed_ack.out 2>client_delayed_ack.err &
+client_PID=$!
+
+wait
 
 # After 30 seconds the lwiperf test should have finished, add 5 more seconds just in case for cmake ${aaazzz)
 #sleep 35
@@ -68,7 +80,7 @@ timeout 35s sudo  ./build/contrib/ports/unix/example_app_client/example_app_clie
 
 # Append result to file
 #grep -a "IPERF report" server_delayed_ack.out >> server_delayed_ack_perf_ackrate_${ACK_THRESHOLD}servrate_${server_rate}clirate_${client_rate}.txt
-grep -a "IPERF report" client_delayed_ack.out >> client_delayed_ack_perf_ackrate_${ACK_THRESHOLD}_servrate_${server_rate}_clirate_${client_rate}_bitrate_${bitrate}_burst_${burst}.txt
+grep -a "IPERF report" measurements/data/client_delayed_ack.out >> client_delayed_ack_perf_ackrate_${ACK_THRESHOLD}_servrate_${server_rate}_clirate_${client_rate}_bitrate_${bitrate}_burst_${burst}.txt
 
 echo "Performance of this transfer:"
-tail -n 1 client_delayed_ack_perf_ackrate_${ACK_THRESHOLD}_servrate_${server_rate}_clirate_${client_rate}_bitrate_${bitrate}_burst_${burst}.txt
+tail -n 1 measurements/data/client_delayed_ack_perf_ackrate_${ACK_THRESHOLD}_servrate_${server_rate}_clirate_${client_rate}_bitrate_${bitrate}_burst_${burst}.txt
