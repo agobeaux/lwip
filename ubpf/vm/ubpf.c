@@ -180,14 +180,9 @@ u32_t *ebpf_write_tcp_options(struct tcp_pcb *pcb, u32_t *opts) {
 }
 
 u8_t ebpf_get_options_length(struct tcp_pcb *pcb) {
-    /*
     printf("ebpf_get_options_length\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/ebpf_get_options_length.bpf";
-    u8_t ret = run_ubpf_with_args(pcb, code_filename);
-    printf("ebpf_get_options_length, returning : %u\n", ret);
-    printf("ebpf_get_options_length: returning directly from cnx: %u\n", (pcb->cnx).ebpf_options_length);
-    return (pcb->cnx).ebpf_options_length; */
-    if (pcb->state <= SYN_RCVD) {
+
+    if (pcb->state == SYN_RCVD || pcb->state == SYN_SENT || pcb->state == LISTEN) {
         printf("Returning ebpf_options_length (options negotiation): %u\n", ebpf_options_length_options_negotiation);
         return ebpf_options_length_options_negotiation;
     }
