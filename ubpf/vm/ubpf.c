@@ -452,21 +452,15 @@ register_functions(struct ubpf_vm *vm)
 }
 
 void ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID) {
-    /* TODO: handle the temporary options case where multiple parser could belond to the same option */
-    char **options_parser;
     printf("Got registration for opt %u, exID: %x\n", opt, exID);
+    char *parser_filename = malloc(strlen(code_filename) + 1);
+    strcpy(parser_filename, code_filename);
+    printf("Parsed filename: %s\n", parser_filename);
     if (opt == 253) {
-        options_parser = &(ebpf_options_parser_bpf_code_253[exID]);
+        ebpf_options_parser_bpf_code_253[exID] = parser_filename;
     } else if (opt == 254) {
-        options_parser = &(ebpf_options_parser_bpf_code_254[exID]);
+        ebpf_options_parser_bpf_code_254[exID] = parser_filename;
     } else {
-        options_parser = &(ebpf_options_parser_bpf_code[opt]);
-    }
-    *options_parser = malloc(strlen(code_filename) + 1);
-    strcpy(*options_parser, code_filename);
-    printf("options_parser is now: %s\n", *options_parser);
-    if (opt != 253 && opt != 254) {
-        printf("ebpf_options_parser_bpf_code[%u]:\n",opt);
-        printf("%s\n", ebpf_options_parser_bpf_code[opt]);
+        ebpf_options_parser_bpf_code[opt] = parser_filename;
     }
 }
