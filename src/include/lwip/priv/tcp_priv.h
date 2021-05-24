@@ -151,9 +151,14 @@ err_t            tcp_process_refused_data(struct tcp_pcb *pcb);
 #define  TCP_MAXIDLE              TCP_KEEPCNT_DEFAULT * TCP_KEEPINTVL_DEFAULT  /* Maximum KEEPALIVE probe time */
 
 /* User timeout value, according to RFC 5482 section 4.2, the user timeout should be set to be less than the keepalive timer */
+/* It is also said that the default value should be 5 minutes (300000 ms) */
 #ifndef  TCP_USER_TIMEOUT_DEFAULT
-#define  TCP_USER_TIMEOUT_DEFAULT     TCP_KEEPIDLE_DEFAULT - 1 /* Default USER TIMEOUT timer in milliseconds */
-#endif
+#if TCP_KEEPIDLE_DEFAULT > 300000UL
+#define  TCP_USER_TIMEOUT_DEFAULT     300000UL /* Default USER TIMEOUT timer in milliseconds, 5 minutes */
+#else
+#define  TCP_USER_TIMEOUT_DEFAULT     TCP_KEEPIDLE_DEFAULT - 1 /* Default USER TIMEOUT timer in milliseconds, less than TCP_KEEPIDLE_DEFAULT */
+#endif /* TCP_KEEPIDLE_DEFAULT > 30000 */
+#endif /* TCP_USER_TIMEOUT_DEFAULT */
 
 #define TCP_TCPLEN(seg) ((seg)->len + (((TCPH_FLAGS((seg)->tcphdr) & (TCP_FIN | TCP_SYN)) != 0) ? 1U : 0U))
 

@@ -15,12 +15,20 @@ int parse_tcp_uto_option(struct tcp_pcb *pcb) {
 	}
 
 	u8_t granularity;
-	u16_t timeout;
+	u32_t timeout;
 	timeout = tcp_get_next_optbyte();
 	timeout |= (tcp_get_next_optbyte() << 8);
 	timeout = custom_ntohs(timeout);
 	granularity = (timeout & 0x8000) >> 15;
 	timeout &= 0x7fff; // filter out the granularity part
+	if (granularity == 1) {
+		/* Timeout parsed is in minutes, put it in ms, u32_t is enough to contain this */
+		timeout = timeout * 1000 * 60;
+	} else {
+		/* Timeout parsed is in seconds, put it in ms */
+		timeout = 1000 * timeout;
+	}
+	timeout = 1000*timeout; /* Option timeout was either in seconds or in me*/
 	help_printf_str("granularity received :");
 	help_printf_uint8_t(granularity);
 	set_user_timeout(pcb, timeout);

@@ -55,8 +55,8 @@ s16_t get_rto_max(tcp_ubpf_cnx_t *cnx);
 
 void set_rto_max(tcp_ubpf_cnx_t *cnx, u16_t timeout);
 
-u64_t get_user_timeout(struct tcp_pcb *pcb);
+u32_t get_user_timeout(struct tcp_pcb *pcb);
 
-void set_user_timeout(struct tcp_pcb *pcb, u64_t timeout);
+void set_user_timeout(struct tcp_pcb *pcb, u32_t timeout);
 
 void membound_fail(uint64_t val, uint64_t mem_ptr, uint64_t stack_ptr);

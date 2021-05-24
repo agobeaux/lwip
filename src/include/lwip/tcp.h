@@ -293,7 +293,7 @@ struct tcp_pcb {
   u32_t tmr;
   u32_t last_ack_received_tmr; /* time when the last packet acknowledging new data was received */
 
-  u64_t user_timeout; /* time after which the connexion is considered as timed out (in milliseconds) */
+  u32_t user_timeout; /* time after which the connexion is considered as timed out (in milliseconds) */
 
   /* receiver variables */
   u32_t rcv_nxt;   /* next seqno expected */
