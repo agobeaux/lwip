@@ -51,7 +51,7 @@ static void usage(const char *name)
 }
 */
 
-void set_use_uto_option() {
+void set_use_uto_option(void) {
     use_uto_option = true;
     /* Should read the value from a file ... */
     ebpf_options_length_options_negotiation += 4;
@@ -59,7 +59,7 @@ void set_use_uto_option() {
     printf("Set_use_uto_option, ebpf_options_length: %u\n", ebpf_options_length);
 }
 
-void set_use_rto_option() {
+void set_use_rto_option(void) {
     use_rto_option = true;
     /* Should read the value from a file ... */
     ebpf_options_length_options_negotiation += 8;
@@ -77,8 +77,6 @@ int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb) { /* u64_t time_waiting
 int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt) {
     printf("ebpf_parse_tcp_option\n");
     const char *code_filename;
-    printf("Before returning ERR_ARG in ebpf_parse_tcp_option\n");
-    return ERR_ARG;
     printf("Checking opt\n");
     u16_t previous_tcp_optidx = tcp_optidx;
     u8_t option_length = tcp_get_next_optbyte();

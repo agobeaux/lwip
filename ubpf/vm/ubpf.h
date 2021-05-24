@@ -141,10 +141,10 @@ ubpf_jit_fn ubpf_compile(struct ubpf_vm *vm, char **errmsg);
 /* FUNCTIONS DEFINED BEFORE = LIBRARY */
 
 /* Use the UTO option writer */
-void set_use_uto_option();
+void set_use_uto_option(void);
 
 /* Use the RTO option writer */
-void set_use_rto_option();
+void set_use_rto_option(void);
 
 /*
  * TODO: This function SHOULD be merged with the other one, but how do we know that we have to multiply the value by TCP_SLOW_INTERVAL?

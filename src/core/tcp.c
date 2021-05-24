@@ -1388,7 +1388,7 @@ tcp_slowtmr_start:
     }
 
     /* If there is unacknowledged data and the time between now and the last segment acknowledging new data is greater than UTO, timeout */
-    if (pcb->snd_nxt != pcb->lastack &&(u32_t)(tcp_ticks - pcb->last_ack_received_tmr) > pcb->user_timeout / TCP_SLOW_INTERVAL) {
+    if (pcb->snd_nxt != pcb->lastack && (u32_t)(tcp_ticks - pcb->last_ack_received_tmr) > pcb->user_timeout / TCP_SLOW_INTERVAL) {
       ++pcb_remove;
       LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: removing pcb because of user timeout\n"));
     }
