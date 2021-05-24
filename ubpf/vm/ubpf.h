@@ -178,7 +178,8 @@ int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb); /* u64_t time_waiting_
 
 /*
  * Parses tcp options
- * Updates tcp_optidx and returns either ERR_OK if everything went fine, ERR_VAL if 
+ * Updates tcp_optidx and returns either ERR_OK if everything went fine, ERR_VAL if the option does not correspond
+ * any parser registered, and ERR_ARG if the eBPF parsing went wrong or if the length is badly formatted.
  */
 int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt);
 
