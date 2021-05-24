@@ -163,6 +163,9 @@ u32_t *ebpf_write_tcp_rto_option(struct tcp_pcb *pcb, u32_t *opts) {
 }
 
 u32_t *ebpf_write_tcp_options(struct tcp_pcb *pcb, u32_t *opts) {
+    if (!pcb) {
+        return opts;
+    }
     printf("in write_tcp_options, opts: %p\n", opts);
     if (use_uto_option) {
         opts = ebpf_write_tcp_uto_option(pcb, opts);
@@ -179,6 +182,10 @@ u32_t *ebpf_write_tcp_options(struct tcp_pcb *pcb, u32_t *opts) {
 
 u8_t ebpf_get_options_length(struct tcp_pcb *pcb) {
     printf("ebpf_get_options_length\n");
+    if (!pcb) {
+        printf("NULL PCB -> returning 0 as options length\n");
+        return 0;
+    }
 
     if (pcb->state == SYN_RCVD || pcb->state == SYN_SENT || pcb->state == LISTEN) {
         printf("Returning ebpf_options_length (options negotiation): %u\n", ebpf_options_length_options_negotiation);
