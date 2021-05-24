@@ -201,9 +201,9 @@ int ebpf_is_ack_needed(struct tcp_pcb *pcb) {
     return run_ubpf_with_args(pcb, code_filename);
 }
 
-int ebpf_is_thin_stream(struct tcp_pcb *pcb) {
-    printf("ebpf_is_thin_stream\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/thin_stream/is_thin_stream.bpf";
+int ebpf_should_fast_retransmit(struct tcp_pcb *pcb) {
+    printf("ebpf_should_fast_retransmit\n");
+    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/thin_stream/should_fast_retransmit.bpf";
     return run_ubpf_with_args(pcb, code_filename);
 }
 
@@ -422,6 +422,7 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, function_index++, "get_last_acked_seqno", get_last_acked_seqno);
     ubpf_register(vm, function_index++, "get_next_seqno", get_next_seqno);
     ubpf_register(vm, function_index++, "get_mss", get_mss);
+    ubpf_register(vm, function_index++, "get_dupacks", get_dupacks);
     ubpf_register(vm, function_index++, "set_delayed_ack_flag", set_delayed_ack_flag);
     ubpf_register(vm, function_index++, "get_num_rcv_unacked", get_num_rcv_unacked);
     ubpf_register(vm, function_index++, "help_printf_uint8_t", help_printf_uint8_t);

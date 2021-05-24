@@ -33,6 +33,8 @@ u32_t get_next_seqno(struct tcp_pcb *pcb);
 
 u8_t get_mss(struct tcp_pcb* pcb);
 
+u8_t get_dupacks(struct tcp_pcb *pcb);
+
 void set_delayed_ack_flag(struct tcp_pcb *pcb);
 
 u8_t get_num_rcv_unacked(struct tcp_pcb *pcb);

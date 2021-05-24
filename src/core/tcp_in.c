@@ -1220,7 +1220,8 @@ tcp_receive(struct tcp_pcb *pcb)
                 /* Inflate the congestion window */
                 TCP_WND_INC(pcb->cwnd, pcb->mss);
               }
-              if (pcb->dupacks >= 3 ) { /*|| ebpf_is_thin_stream(pcb)) {*/ /* TODO: should thin_stream also trigger the congestion window change ? */
+              /*if (pcb->dupacks >= 3 ) {*/
+              if (ebpf_should_fast_retransmit(pcb)) { /* TODO: should thin_stream also trigger the congestion window change ? */
                 /* Do fast retransmit (checked via TF_INFR, not via dupacks count) */
                 tcp_rexmit_fast(pcb);
               }

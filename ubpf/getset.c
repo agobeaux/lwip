@@ -69,10 +69,16 @@ u32_t get_next_seqno(struct tcp_pcb *pcb) {
     return pcb->snd_nxt;
 }
 
-u8_t get_mss(struct tcp_pcb* pcb) {
+u8_t get_mss(struct tcp_pcb *pcb) {
     printf("Returning the current MSS: %u\n", pcb->mss);
     return pcb->mss;
 }
+
+u8_t get_dupacks(struct tcp_pcb *pcb) {
+    printf("Returning current number of dupACKs received: %u\n", pcb->dupacks);
+    return pcb->dupacks;
+}
+
 void set_delayed_ack_flag(struct tcp_pcb *pcb) {
     printf("Setting delayed ack flag: NOT THIS TIME\n");
     printf("flag %u\n", pcb->flags);

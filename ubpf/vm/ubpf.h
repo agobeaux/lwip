@@ -208,9 +208,9 @@ u8_t ebpf_get_options_length(struct tcp_pcb *pcb);
 int ebpf_is_ack_needed(struct tcp_pcb *pcb);
 
 /*
- * Returns true if the TCP stream linked to the pcb is considered as a thin stream
+ * Returns true if a fast retransmit should be sent on the TCP stream linked to the PCB pcb.
  */
-int ebpf_is_thin_stream(struct tcp_pcb *pcb);
+int ebpf_should_fast_retransmit(struct tcp_pcb *pcb);
 
 /*
  * Like run_ubpf but with extensible args
