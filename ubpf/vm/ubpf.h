@@ -63,6 +63,10 @@ char *ebpf_options_parser_bpf_code_254[256];
 int ebpf_options_length_options_negotiation;
 int ebpf_options_length;
 
+/* Helper macros */
+#if defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901L)
+
+/* C99-style: anonymous argument referenced by __VA_ARGS__, empty arg not OK */
 /* Helps to find the number of arguments in __VA_ARGS__ (up to 9 arguments though) */
 /* Works by the fact that in N_ARGS_HELPER2, we put to the trash the first 9 elements
    and return the 10th one. Taken from PQUIC implementation */
@@ -71,6 +75,22 @@ int ebpf_options_length;
 # define N_ARGS_HELPER2(x1, x2, x3, x4, x5, x6, x7, x8, x9, n, ...) n
 
 #define run_ubpf_with_args(pcb, filename, ...) run_ubpf_args(pcb, filename, N_ARGS( __VA_ARGS__), ## __VA_ARGS__)
+
+#elif defined(__GNUC__)
+
+/* GCC-style: named argument, empty arg is OK */
+
+# define N_ARGS(args...) N_ARGS_HELPER1(args, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+# define N_ARGS_HELPER1(args...) N_ARGS_HELPER2(args)
+# define N_ARGS_HELPER2(x1, x2, x3, x4, x5, x6, x7, x8, x9, n, x...) n
+
+#define run_ubpf_with_args(pcb, filename, ...) run_ubpf_args(pcb, filename, N_ARGS(args), args)
+
+#else
+
+#error variadic macros for your compiler here
+
+#endif
 
 struct ubpf_vm;
 typedef uint64_t (*ubpf_jit_fn)(void *mem, size_t mem_len);
