@@ -1,6 +1,8 @@
 from matplotlib import pyplot as plt
 import os
 import sys
+import statistics
+from math import ceil
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
@@ -39,6 +41,14 @@ for i in range(N):
   bandwidths.append(current_bandwidth)
 
 plt.boxplot(bandwidths)
+for n, bw in enumerate(bandwidths):
+  print('When N = {}, the median bandwidths is {}'.format(n, statistics.median(bw)))
+
+max_bandwidth = 0
+for bw_list in bandwidths:
+  for bw_value in bw_list:
+    max_bandwidth = max(max_bandwidth, bw_value)
+plt.ylim([0, 5*ceil(max_bandwidth/5)])
 plt.title('Bandwidth [kbit/s] when sending 1/N ACKs (N=' + str([i+1 for i in range(N)]) + ')')
 plt.ylabel('Bandwidth [kbit/s]')
 plt.xlabel('Value of N')

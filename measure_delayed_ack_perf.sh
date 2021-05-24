@@ -1,19 +1,31 @@
 #!/bin/bash
 
 # Stop on error
-set -e
+set -ex
 
 server_rate=1
 client_rate="NOLIMIT"
 bitrate=2000
 burst=200
-ACK_THRESHOLD=3
+
+if [[ $# -ne 1 ]]; then
+  echo "Usage : source ./measure_delayed_ack_perf ACK_THRESHOLD"
+  return
+fi
+
+ACK_THRESHOLD=$1
 
 echo "This script is meant to be sourced as sudo (didn't work otherwise with timeout function)"
 
+# Create tap interfaces if not already done
+if [[ !(sudo ifconfig | grep -q "tap0") || !(sudo ifconfig | grep -q "tap1") ]]; then
+  echo "Creating interfaces"
+  sudo ./contrib/ports/unix/setup-tapif
+fi
+
 
 # iptables rules to update the transfers coming from tap0, tap1 and lwipbridge
-if !(sudo iptables -L -v -n | grep -q "tap0"); then
+if ! (sudo iptables -L -v -n | grep -q "tap0"); then
   echo "SETTING IPTABLES RULES !!!"
   sudo iptables -I FORWARD 1 -i lwipbridge -j ACCEPT
   sudo iptables -I FORWARD 1 -i tap0 -j ACCEPT
@@ -30,11 +42,6 @@ fi
 # At the moment, not a problem since eBPF codes are not preloaded!
 cd ubpf/plugins/delayed_ack; make ACK_THRESHOLD=$ACK_THRESHOLD; cd ../../..;
 
-# Create tap interfaces if not already done
-if !(ifconfig | grep -q "tap0") || !(ifconfig | grep -q "tap1"); then
-  echo "Creating interfaces"
-  sudo ./contrib/ports/unix/setup-tapif
-fi
 
 # Modify bandwidth of the transfer
 if (tc class show dev tap1 parent 5:0 | grep -q "class htb"); then
@@ -63,11 +70,11 @@ cd ..
 #sudo  ./build/contrib/ports/unix/example_app_client/example_app_client >client_delayed_ack.out 2>client_delayed_ack.err &
 #sudo ./launch-client.sh &
 
-timeout 40s sudo ./build/contrib/ports/unix/example_app/example_app >server_delayed_ack.out 2>server_delayed_ack.err &
+timeout 40s sudo ./build/contrib/ports/unix/example_app/example_app >measurements/data/server_delayed_ack.out 2>measurements/data/server_delayed_ack.err &
 server_PID=$!
 
 
-timeout 35s sudo  ./build/contrib/ports/unix/example_app_client/example_app_client >client_delayed_ack.out 2>client_delayed_ack.err &
+timeout 35s sudo  ./build/contrib/ports/unix/example_app_client/example_app_client >measurements/data/client_delayed_ack.out 2>measurements/data/client_delayed_ack.err &
 client_PID=$!
 
 wait
@@ -80,7 +87,7 @@ wait
 
 # Append result to file
 #grep -a "IPERF report" server_delayed_ack.out >> server_delayed_ack_perf_ackrate_${ACK_THRESHOLD}servrate_${server_rate}clirate_${client_rate}.txt
-grep -a "IPERF report" measurements/data/client_delayed_ack.out >> client_delayed_ack_perf_ackrate_${ACK_THRESHOLD}_servrate_${server_rate}_clirate_${client_rate}_bitrate_${bitrate}_burst_${burst}.txt
+grep -a "IPERF report" measurements/data/client_delayed_ack.out >> measurements/data/client_delayed_ack_perf_ackrate_${ACK_THRESHOLD}_servrate_${server_rate}_clirate_${client_rate}_bitrate_${bitrate}_burst_${burst}.txt
 
 echo "Performance of this transfer:"
 tail -n 1 measurements/data/client_delayed_ack_perf_ackrate_${ACK_THRESHOLD}_servrate_${server_rate}_clirate_${client_rate}_bitrate_${bitrate}_burst_${burst}.txt
