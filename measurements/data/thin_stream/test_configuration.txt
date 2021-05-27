@@ -1,0 +1,6 @@
+Comme delayed ACK + 
+MEMP_NUM_TCP_SEG = 15
+TCP_SND_BUF = 3
+
+uto/rto disabled
+

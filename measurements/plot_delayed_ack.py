@@ -34,7 +34,7 @@ for i in range(N):
     current_N, server_rate, client_rate, bitrate, burst
   )
   current_bandwidth = []
-  with open(dir_path + '/data/' + filename, 'r') as file:
+  with open(dir_path + '/data/delayed_ack/' + filename, 'r') as file:
     print('Delayed ACK N={}'.format(current_N))
     for line in file.readlines():
       current_bandwidth.append(get_bw_from_line(line))
