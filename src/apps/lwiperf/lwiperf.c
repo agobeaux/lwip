@@ -309,7 +309,7 @@ lwiperf_tcp_client_send_more(lwiperf_state_tcp_t *conn)
       u32_t amount_bytes = lwip_htonl(conn->settings.amount);
       printf("lwiperf: Byte limited session\n");
       /* @todo: this can send up to 1*MSS more than requested... */
-      if (amount_bytes >= conn->bytes_transferred) {
+      if (conn->bytes_transferred >= amount_bytes) {
         /* all requested bytes transferred -> close the connection */
         lwiperf_tcp_close(conn, LWIPERF_TCP_DONE_CLIENT);
         return ERR_OK;
