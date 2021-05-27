@@ -357,9 +357,9 @@ test_netif_init(void)
   netmask.addr = 0X00FFFFFFUL;
 
   /* Plugins used */
-  set_use_uto_option();
+  /*set_use_uto_option();
   set_use_rto_option();
-
+  */
   ubpf_register_tcp_option_parser(
     "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/parse_tcp_uto_option.bpf",
     28,

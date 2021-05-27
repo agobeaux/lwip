@@ -172,7 +172,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define MEMP_NUM_TCP_PCB_LISTEN 8
 /* MEMP_NUM_TCP_SEG: the number of simultaneously queued TCP
    segments. */
-#define MEMP_NUM_TCP_SEG        360 /*16*/
+#define MEMP_NUM_TCP_SEG        15 /*360 /*16*/
 /* MEMP_NUM_SYS_TIMEOUT: the number of simulateously active
    timeouts. */
 #define MEMP_NUM_SYS_TIMEOUT    17
@@ -224,7 +224,7 @@ a lot of data that needs to be copied, this should be set high. */
 #define TCP_MSS                 1024
 
 /* TCP sender buffer space (bytes). */
-#define TCP_SND_BUF             46080 /*2048*/ /* TODO: modifier pour que ce soit +, pour avoir un meilleur iperf) */
+#define TCP_SND_BUF             3 * TCP_MSS /*46080*/ /*2048*/ /* TODO: modifier pour que ce soit +, pour avoir un meilleur iperf) */
 
 /* TCP sender buffer space (pbufs). This must be at least = 2 *
    TCP_SND_BUF/TCP_MSS for things to work. */
