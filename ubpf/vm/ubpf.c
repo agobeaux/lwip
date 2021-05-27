@@ -69,7 +69,7 @@ void set_use_rto_option(void) {
 /* TODO: This function SHOULD be merged with the other one, but how do we know that we have to multiply the value by TCP_SLOW_INTERVAL? */
 int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb) { /* u64_t time_waiting_unacked */
     printf("ebpf_should_drop_connection_rto\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/ebpf_should_drop_connection_UTO.bpf";
+    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/ebpf_should_drop_connection_rto.bpf";
     /* LWIP_UNUSED_ARG(time_waiting_unacked); */
     return run_ubpf_with_args(pcb, code_filename);
 }
@@ -150,14 +150,14 @@ u32_t *ebpf_write_tcp_uto_option(struct tcp_pcb *pcb, u32_t *opts) { /* TODO: us
      *                but is that functional?...
      */
     printf("ebpf_write_tcp_uto_option\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/write_tcp_uto_option.bpf";
+    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/user_timeout/write_tcp_uto_option.bpf";
     printf("ebpf_write_tcp_uto_option: Before calling run_ubpf_with_args, opts is at %p\n", opts);
     return run_ubpf_with_args(pcb, code_filename, opts);
 }
 
 u32_t *ebpf_write_tcp_rto_option(struct tcp_pcb *pcb, u32_t *opts) {
     printf("ebpf_write_tcp_rto_option\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/write_tcp_rto_option.bpf";
+    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/retransmission_timeout/write_tcp_rto_option.bpf";
     printf("ebpf_write_tcp_rto_option: Before calling run_ubpf_with_args, opts is at %p\n", opts);
     return run_ubpf_with_args(pcb, code_filename, opts);
 }
@@ -241,6 +241,7 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
 
     code = readfile(code_filename, 1024*1024, &code_len);
     if (code == NULL) {
+        fprintf(stderr, "run_ubpf_args: readfile had a problem: code = NULL\n");
         if (mem) {
             free(mem);
         }

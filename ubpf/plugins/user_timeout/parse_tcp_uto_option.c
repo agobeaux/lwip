@@ -28,7 +28,6 @@ int parse_tcp_uto_option(struct tcp_pcb *pcb) {
 		/* Timeout parsed is in seconds, put it in ms */
 		timeout = 1000 * timeout;
 	}
-	timeout = 1000*timeout; /* Option timeout was either in seconds or in me*/
 	help_printf_str("granularity received :");
 	help_printf_uint8_t(granularity);
 	set_user_timeout(pcb, timeout);
