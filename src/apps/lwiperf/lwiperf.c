@@ -54,6 +54,7 @@
 #include "lwip/tcp.h"
 #include "lwip/sys.h"
 #include "lwip/inet.h"
+#include <stdbool.h>
 
 #include <string.h>
 
@@ -310,6 +311,9 @@ lwiperf_tcp_client_send_more(lwiperf_state_tcp_t *conn)
       printf("lwiperf: Byte limited session\n");
       /* @todo: this can send up to 1*MSS more than requested... */
       if (conn->bytes_transferred >= amount_bytes) {
+        printf("lwiperf: Calling lwiperf_tcp_close as amount_bytes (%u) >= conn->bytes (%u)\n",
+                  amount_bytes,
+                  conn->bytes_transferred);
         /* all requested bytes transferred -> close the connection */
         lwiperf_tcp_close(conn, LWIPERF_TCP_DONE_CLIENT);
         return ERR_OK;
@@ -382,6 +386,7 @@ lwiperf_tcp_client_connected(void *arg, struct tcp_pcb *tpcb, err_t err)
   LWIP_ASSERT("invalid conn", conn->conn_pcb == tpcb);
   LWIP_UNUSED_ARG(tpcb);
   if (err != ERR_OK) {
+    printf("lwiperf_tcp_client_connected: err != ERR_OK\n");
     lwiperf_tcp_close(conn, LWIPERF_TCP_ABORTED_REMOTE);
     return ERR_OK;
   }
@@ -476,6 +481,7 @@ lwiperf_tcp_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
   LWIP_UNUSED_ARG(tpcb);
 
   if (err != ERR_OK) {
+    printf("lwiperf_tcp_recv: err != ERR_OK\n");
     lwiperf_tcp_close(conn, LWIPERF_TCP_ABORTED_REMOTE);
     return ERR_OK;
   }
@@ -487,6 +493,7 @@ lwiperf_tcp_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
         lwiperf_tx_start_passive(conn);
       }
     }
+    printf("lwiperf_tcp_recv: p == NULL -> connection closed -> test done\n");
     lwiperf_tcp_close(conn, LWIPERF_TCP_DONE_SERVER);
     return ERR_OK;
   }
@@ -497,6 +504,7 @@ lwiperf_tcp_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
   if ((!conn->have_settings_buf) || ((conn->bytes_transferred - 24) % (1024 * 128) == 0)) {
     /* wait for 24-byte header */
     if (p->tot_len < sizeof(lwiperf_settings_t)) {
+      printf("lwiperf_tcp_recv: p->tot_len (%u) < sizeof(lwiperf_settings_t) (%u)\n", p->tot_len, sizeof(lwiperf_settings_t));
       lwiperf_tcp_close(conn, LWIPERF_TCP_ABORTED_LOCAL_DATAERROR);
       pbuf_free(p);
       return ERR_OK;
@@ -514,6 +522,7 @@ lwiperf_tcp_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
           /* client requested parallel transmission test */
           err_t err2 = lwiperf_tx_start_passive(conn);
           if (err2 != ERR_OK) {
+            printf("lwiperf_tcp_recv: err2 != ERR_OK\n");
             lwiperf_tcp_close(conn, LWIPERF_TCP_ABORTED_LOCAL_TXERROR);
             pbuf_free(p);
             return ERR_OK;
@@ -523,6 +532,7 @@ lwiperf_tcp_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
     } else {
       if (conn->settings.flags & PP_HTONL(LWIPERF_FLAGS_ANSWER_TEST)) {
         if (pbuf_memcmp(p, 0, &conn->settings, sizeof(lwiperf_settings_t)) != 0) {
+          printf("lwiperf_tcp_recv: pbuf_memcmp != 0\n");
           lwiperf_tcp_close(conn, LWIPERF_TCP_ABORTED_LOCAL_DATAERROR);
           pbuf_free(p);
           return ERR_OK;
@@ -577,6 +587,7 @@ lwiperf_tcp_err(void *arg, err_t err)
 {
   lwiperf_state_tcp_t *conn = (lwiperf_state_tcp_t *)arg;
   LWIP_UNUSED_ARG(err);
+  printf("lwiperf_tcp_err Error callback, iperf tcp session aborted!\n");
   lwiperf_tcp_close(conn, LWIPERF_TCP_ABORTED_REMOTE);
 }
 
@@ -605,6 +616,7 @@ lwiperf_tcp_poll(void *arg, struct tcp_pcb *tpcb)
 static err_t
 lwiperf_tcp_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
 {
+  printf("in lwiperf_tcp_accept!!\n"); fflush(stdout);
   lwiperf_state_tcp_t *s, *conn;
   if ((err != ERR_OK) || (newpcb == NULL) || (arg == NULL)) {
     return ERR_VAL;
@@ -650,6 +662,7 @@ lwiperf_tcp_accept(void *arg, struct tcp_pcb *newpcb, err_t err)
     if (!s->client_tradeoff_mode || !lwiperf_list_find(s->base.related_master_state)) {
       /* prevent report when closing: this is expected */
       s->report_fn = NULL;
+      printf("lwiperf: lwiperf_tcp_accept, going to close\n");
       lwiperf_tcp_close(s, LWIPERF_TCP_ABORTED_LOCAL);
     }
   }
@@ -797,7 +810,15 @@ void* lwiperf_start_tcp_client(const ip_addr_t* remote_addr, u16_t remote_port,
   settings.num_threads = htonl(1);
   settings.remote_port = htonl(LWIPERF_TCP_PORT_DEFAULT);
   /* TODO: implement passing duration/amount of bytes to transfer */
-  settings.amount = htonl((u32_t)-3000); /* 3000 pour 30 s */
+  bool is_duration_limited = false;
+  if (is_duration_limited) {
+    settings.amount = htonl((u32_t)-3000); /* 3000 pour 30 s */
+    printf("Duration of the transfer in lwiperf: %u\n", -settings.amount);
+  } else {
+    settings.amount = htonl((u32_t)30000); /*Transfer 30kbytes */
+    printf("Size of the transfer in lwiperf: %u\n", settings.amount);
+  }
+
   printf("Amount of duration of transfer in lwiperf: %u, init: %u\n", settings.amount, (u32_t)-100);
 
   ret = lwiperf_tx_start_impl(remote_addr, remote_port, &settings, report_fn, report_arg, NULL, &state);
