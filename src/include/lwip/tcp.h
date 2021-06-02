@@ -238,7 +238,7 @@ struct tcp_pcb_listen {
 };
 
 /* Context structure, needed for plugins */
-typedef struct {
+typedef struct tcp_ubpf_cnx {
 
   /* Number of inputs for the plugin */
   int inputc;
