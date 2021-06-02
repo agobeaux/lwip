@@ -8,13 +8,14 @@ client_rate="NOLIMIT"
 bitrate=2000
 burst=200
 
-if [[ $# -ne 2 ]]; then
-  echo "Usage : source ./measure_thin_stream_perf LOSS_PERCENTAGE NUM_PACKETS_OUT_THRESHOLD"
+if [[ $# -ne 3 ]]; then
+  echo "Usage : source ./measure_thin_stream_perf LOSS_PERCENTAGE NUM_PACKETS_OUT_THRESHOLD IF_DELAY"
   return
 fi
 
 LOSS_PERCENTAGE=$1
 NUM_PACKETS_OUT_THRESHOLD=$2
+IF_DELAY=$3
 
 echo "This script is meant to be sourced as sudo (didn't work otherwise with timeout function)"
 
@@ -58,11 +59,24 @@ cd ubpf/plugins/thin_stream; make NUM_PACKETS_OUT_THRESHOLD=${NUM_PACKETS_OUT_TH
 # doesn't work sudo tc qdisc add dev tap1 root handle 5:0 netem
 if sudo tc qdisc show | grep "tap0" | grep -q "netem"; then
 	sudo tc qdisc delete dev tap0 root netem
+	sudo tc qdisc delete dev tap1 root netem
 fi
 
 if [[ ${LOSS_PERCENTAGE} -ne 0 ]]; then
-	sudo tc qdisc replace dev tap0 root netem loss ${LOSS_PERCENTAGE}%
+	loss_perc_str="loss ${LOSS_PERCENTAGE}%"
 fi
+
+if [[ ${IF_DELAY} -ne 0 ]]; then
+	# not 0 case is not handled yet...
+	if_delay_str="delay ${IF_DELAY}ms"
+fi
+
+sudo tc qdisc replace dev tap1 root netem ${if_delay_str}
+sudo tc qdisc replace dev tap0 root netem ${loss_perc_str} ${if_delay_str}
+
+#if [[ ${LOSS_PERCENTAGE} -ne 0 ]]; then
+#	sudo tc qdisc replace dev tap0 root netem loss ${LOSS_PERCENTAGE}% delay 30ms
+#fi
 #sudo tc class add dev tap0 parent 5:0 classid 5:1 htb rate ${bitrate}bit burst ${burst}
 # doesn't work sudo tc class add dev tap1 parent 5:0 classid 5:1 netem loss 25%
 # AUTRE IDEE: pourquoi ne pas juste limiter la sender window pour avoir max 4 paquets et engendrer des loss avec netem?
@@ -106,7 +120,7 @@ wait
 sleep 1
 # Append result to file
 #grep -a "IPERF report" server_thin_stream.out >> server_thin_stream_perf_ackrate_${ACK_THRESHOLD}servrate_${server_rate}clirate_${client_rate}.txt
-grep -a "IPERF report" measurements/data/thin_stream/client_thin_stream.out >> measurements/data/thin_stream/client_thin_stream_perf_ackrate_${ACK_THRESHOLD}_lossperc_${LOSS_PERCENTAGE}_numPacketsOutThreshold_${NUM_PACKETS_OUT_THRESHOLD}.txt
+grep -a "IPERF report" measurements/data/thin_stream/client_thin_stream.out >> measurements/data/thin_stream/client_thin_stream_perf_ackrate_${ACK_THRESHOLD}_lossperc_${LOSS_PERCENTAGE}_numPacketsOutThreshold_${NUM_PACKETS_OUT_THRESHOLD}_IFDelay_${IF_DELAY}.txt
 
 echo "Performance of this transfer:"
-tail -n 1 measurements/data/thin_stream/client_thin_stream_perf_ackrate_${ACK_THRESHOLD}_lossperc_${LOSS_PERCENTAGE}_numPacketsOutThreshold_${NUM_PACKETS_OUT_THRESHOLD}.txt
+tail -n 1 measurements/data/thin_stream/client_thin_stream_perf_ackrate_${ACK_THRESHOLD}_lossperc_${LOSS_PERCENTAGE}_numPacketsOutThreshold_${NUM_PACKETS_OUT_THRESHOLD}_IFDelay_${IF_DELAY}.txt

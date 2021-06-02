@@ -1,0 +1,867 @@
+Got registration for opt 28, exID: 0
+Parsed filename: /home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/user_timeout/parse_tcp_uto_option.bpf
+Got registration for opt 253, exID: 12ef
+Parsed filename: /home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/retransmission_timeout/parse_tcp_rto_option.bpf
+Starting lwIP, local interface IP is dhcp-enabled
+DEVTAP DEFAULT IF : tap0
+ifconfig returned 256
+ip6 linklocal address: FE80::12:34FF:FE56:7801
+status_callback==UP, local interface IP is 192.168.1.3
+tcp_listen_with_backlog: beginning
+tcp_listen_with_backlog_and_err: beginning
+in tcp_get_next_optbyte
+After accessing tcp_optidx
+In if in tcp_get_next_optbyte
+after setting opts
+after SETTING ret !!! no problem should happen
+After calling tcp_get_next_optbyte()
+opt is: 2
+in tcp_get_next_optbyte
+After accessing tcp_optidx
+In if in tcp_get_next_optbyte
+after setting opts
+after SETTING ret !!! no problem should happen
+in tcp_get_next_optbyte
+After accessing tcp_optidx
+In if in tcp_get_next_optbyte
+after setting opts
+after SETTING ret !!! no problem should happen
+in tcp_get_next_optbyte
+After accessing tcp_optidx
+In if in tcp_get_next_optbyte
+after setting opts
+after SETTING ret !!! no problem should happen
+tcp_enqueue_flags, timestamps
+ebpf_get_options_length
+Returning ebpf_options_length (options negotiation): 0
+tcp_create_segment
+ebpf_get_options_length
+Returning ebpf_options_length (options negotiation): 0
+in write_tcp_options, opts: 0x55c2721c6b0c
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b0c
+ebpf_get_options_length
+Returning ebpf_options_length (options negotiation): 0
+After parseopt tcp_process
+in lwiperf_tcp_accept!!
+Bef Clau 1: pcb->lastack: 6510, ackno: 6511
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+IN TCP_FASTTMR
+NOT ACK DELAY!!!
+IN TCP_SLOWTMR
+ebpf_should_drop_connection_rto
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Currently launching eBPF function ebpf_should_drop_connection_rto!
+
+Returning rto: 6
+Returning rto_max: 16384
+Printing rto and then rto max
+
+6
+16384
+0x0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+IN TCP_FASTTMR
+NOT ACK DELAY!!!
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+tcp_send_empty_ack
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+tcp_output_fill_options
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6511
+Clause 1: OK
+This is pcb num_rcv_unacked: 0
+ebpf_is_ack_needed
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Returning num_rcv_unacked: 1
+num_rcv_unacked >= threshold
+0x1
+I should send this packet now!!
+in tcp_ack: pcb->rto = 6
+lwiperf_tcp_recv: p == NULL -> connection closed -> test done
+lwiperf_tcp_close() called
+IPERF report: type=0, remote: 192.168.1.4:58311, total bytes: 30744, duration in ms: 627, kbits/s: 392
+tcp_enqueue_flags, timestamps
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+tcp_create_segment
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+in write_tcp_options, opts: 0x55c2721c6b08
+didn't call 
+didn't call 2 
+opts: 0x55c2721c6b08
+ebpf_get_options_length
+Returning ebpf_options_length: 0
+IN TCP_FASTTMR
+NOT ACK DELAY!!!
+IN TCP_SLOWTMR
+ebpf_should_drop_connection_rto
+Number of args: 1
+run_ubpf_args: Before calling the function, args[0] is at 0x7f2a971ee257
+Beginning of run_ubpf()
+Before JIT
+jit not used
+Currently launching eBPF function ebpf_should_drop_connection_rto!
+
+Returning rto: 6
+Returning rto_max: 16384
+Printing rto and then rto max
+
+6
+16384
+0x0
+After parseopt tcp_process
+Bef Clau 1: pcb->lastack: 6511, ackno: 6512
+IN TCP_FASTTMR
+status_callback==UP, local interface IP is 192.168.1.3

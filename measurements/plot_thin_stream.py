@@ -30,7 +30,7 @@ durations = []
 for num_packets_out_threshold in num_packets_out_thresholds:
   durations_for_numPackOut_threshold = []
   for loss_percentage in loss_percentages:
-    filename = 'client_thin_stream_perf_ackrate__lossperc_{1}_numPacketsOutThreshold_{2}.txt'.format(
+    filename = 'client_thin_stream_perf_ackrate__lossperc_{1}_numPacketsOutThreshold_{2}_IFDelay_30.txt'.format(
       ack_threshold, loss_percentage, num_packets_out_threshold
     )
     current_duration = []
@@ -61,16 +61,16 @@ bp_with = ax.boxplot(durations[1], positions=positions_with_thin_stream, notch=T
                      patch_artist=True, boxprops=dict(facecolor="C2"))
 
 ax.legend([bp_without["boxes"][0], bp_with["boxes"][0]], ['Default configuration', 'Using thin_stream detection'])
-for index, duration_list in enumerate(durations):
-  thin_stream = "using thin_stream" if index % 2 == 1 else "without thin_stream"
-  print('When loss_percentage = {}, the median duration is {} {}'.format(loss_percentages[index//2], statistics.median(duration_list), thin_stream))
+#for index, duration_list in enumerate(durations):
+#  thin_stream = "using thin_stream" if index % 2 == 1 else "without thin_stream"
+#  print('When loss_percentage = {}, the median duration is {} {}'.format(loss_percentages[index//2], statistics.median(duration_list), thin_stream))
 
 max_duration = 0
 for duration_list_for_case in durations:
   for duration_list in duration_list_for_case:
     for duration_value in duration_list:
       max_duration = max(max_duration, duration_value)
-plt.ylim([0, 5000*ceil(max_duration/5000)+5])
+#plt.ylim([0, 5000*ceil(max_duration/5000)+5])
 plt.title('Transfer duration [ms] with and without thin_stream detection\naccording to different data packet loss percentage')
 plt.ylabel('Transfer duration [ms]')
 plt.xlabel('Data packet loss percentage [%]')
@@ -79,5 +79,7 @@ xticks = loss_percentages*2
 print('xticks', xticks, 'positions', positions)
 plt.xticks(positions, xticks)
 plt.grid()
-plt.savefig(dir_path+ '/plots/' + 'Thin_stream_loss_percentages=' + str(loss_percentages), dpi=400)
+plt.savefig(dir_path+ '/plots/' + 'Thin_stream_loss_percentages=' + str(loss_percentages) + '_IFDelay30', dpi=400)
+plt.yscale('log')
+plt.savefig(dir_path+ '/plots/' + 'Thin_stream_loss_percentages=' + str(loss_percentages) + '_IFDelay30_logY', dpi=400)
 plt.show()
