@@ -51,6 +51,9 @@
 #include "lwip/ip6.h"
 #include "lwip/ip6_addr.h"
 
+/* Maps linking plugins and memory shared among one plugin (with multiple sub-plugins maybe) */
+#include "lwip/map.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -240,14 +243,17 @@ struct tcp_pcb_listen {
 /* Context structure, needed for plugins */
 typedef struct tcp_ubpf_cnx {
 
+  /* Plugin name, useful to retrieve the memory related to it */
+  char *current_plugin_name;
+
   /* Number of inputs for the plugin */
   int inputc;
 
   /* Actual inputs, all converted to uint64_t in order to allow for pointers */
   uint64_t *inputv;
 
-  /* Fields required for the plugins to operate */
-  s16_t rto_max; /* max value of retransmission time-out allowed (in ticks of TCP_SLOW_INTERVAL) */
+  /* Map linking plugin names with the memory allocated for them. This field gives the head of the map, implemented as a linked list */
+  plugins_memory_t *plugins_memory_map;
 
 } tcp_ubpf_cnx_t;
 

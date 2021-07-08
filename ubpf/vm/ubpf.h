@@ -23,7 +23,13 @@
 
 #include "lwip/tcp.h"
 
-#include<stdarg.h> /* VA_ARGS, va_arg(ap, type) etc */
+#include <stdarg.h> /* VA_ARGS, va_arg(ap, type) etc */
+
+
+typedef struct filename_pluginName {
+   char *filename;
+   char *pluginName;
+} filename_pluginName_t;
 
 /*
  * Enable/disable some plugins
@@ -35,18 +41,17 @@ bool use_rto_option;
 
 /* Each entry is either NULL if the index does not correspond to an option that could be parsed by an eBPF plugin
  * currently used, or it is the filename of the plugin that can parse the said option.
- * TODO: take care of the special case of temporary options that allow multiple options
  * TODO: move this to the tcp_pcb/context as it should be per-connection based. Makes sense if we can launch multiple apps
  *       operating on different addresses (which I am not sure if it is the case).
  */
-char *ebpf_options_parser_bpf_code[256];
+filename_pluginName_t ebpf_options_parser_bpf_code[256];
 
 /*
  * Experimental Options case: two buffers are needed. Those are similar to the previous one
  * as the ExID is 16 bits longs.
  */
-char *ebpf_options_parser_bpf_code_253[256];
-char *ebpf_options_parser_bpf_code_254[256];
+filename_pluginName_t ebpf_options_parser_bpf_code_253[65536];
+filename_pluginName_t ebpf_options_parser_bpf_code_254[65536];
 
 /*
  * Those variables contain the options length for packets sent either during the options negotiation
@@ -219,9 +224,9 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
 
 /*
  * This function adds an eBPF option parser that correponds to a certain option.
- * This function should not be called twice with the same option or memory leaks will happen.
+ * This function should not be called twice with the same option (and exID if applicable) or memory leaks will happen.
  * exID is only used with experimental options; this parameter is ignored when using a traditional tcp option.
  */
-void ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID);
+void ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID, const char *plugin_name);
 
 #endif

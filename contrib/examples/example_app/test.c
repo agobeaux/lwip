@@ -356,21 +356,6 @@ test_netif_init(void)
   ipaddr.addr = 0x0301A8C0UL; /* address 192.168.1.3 */
   netmask.addr = 0X00FFFFFFUL;
 
-  /* Plugins used */
-  /*set_use_uto_option();
-  set_use_rto_option();
-  */
-  ubpf_register_tcp_option_parser(
-    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/user_timeout/parse_tcp_uto_option.bpf",
-    28,
-    0 /* useless param here */
-  );
-  ubpf_register_tcp_option_parser(
-    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/retransmission_timeout/parse_tcp_rto_option.bpf",
-    253,
-    0x12EF
-  );
-
 #if USE_ETHERNET_TCPIP
 #if USE_DHCP
   printf("Starting lwIP, local interface IP is dhcp-enabled\n");
@@ -664,6 +649,28 @@ main_loop(void)
 #endif
   volatile int callClosePpp = 0;
 #endif /* USE_PPP */
+
+  /* First, initiliaze map and plugins so that the different PCBs will copy the right map */
+  global_plugins_memory_map = init_plugin_memory_map();
+  add_plugin_memory(global_plugins_memory_map, "RTO_plugin", 1, false); /* Reserve one variable for the RTO plugin */
+
+  /* Plugins used */
+  /*set_use_uto_option();
+  set_use_rto_option();
+  */
+  ubpf_register_tcp_option_parser(
+    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/user_timeout/parse_tcp_uto_option.bpf",
+    28,
+    0, /* useless param here */
+    "UTO_plugin"
+  );
+  ubpf_register_tcp_option_parser(
+    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/parse_tcp_rto_option.bpf",
+    253,
+    0x12EF,
+    "RTO_plugin"
+  );
+
 
   /* initialize lwIP stack, network interfaces and applications */
 #if NO_SYS

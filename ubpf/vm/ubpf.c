@@ -71,14 +71,15 @@ int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb) { /* u64_t time_waiting
     printf("ebpf_should_drop_connection_rto\n");
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/ebpf_should_drop_connection_rto.bpf";
     /* LWIP_UNUSED_ARG(time_waiting_unacked); */
-    return run_ubpf_with_args(pcb, code_filename);
+    (pcb->cnx).current_plugin_name = "RTO_plugin"; /* TODO: modifier pour que ce soit dynamique... Liste de fonctions de timeout et voilà... */
+    return run_ubpf_with_args(pcb, code_filename);// ,NULL);
 }
 
 int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt) {
-    printf("ebpf_parse_tcp_option\n");
+    printf("ebpf_parse_tcp_option: opt %u\n", opt);
     const char *code_filename;
     printf("Checking opt\n");
-    u16_t previous_tcp_optidx = tcp_optidx;
+    u16_t previous_tcp_optidx = tcp_optidx - 1; /* -1 because the option has already been read */
     u8_t option_length = tcp_get_next_optbyte();
 
     if (option_length < 2) {
@@ -91,9 +92,11 @@ int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt) {
     if (opt == 253 || opt == 254) {
         u16_t exID = custom_ntohs(tcp_get_next_optbyte() | (tcp_get_next_optbyte() << 8));
         if (opt == 253) {
-            code_filename = ebpf_options_parser_bpf_code_253[exID];
+            code_filename = ebpf_options_parser_bpf_code_253[exID].filename;
+            (pcb->cnx).current_plugin_name = ebpf_options_parser_bpf_code_253[exID].pluginName;
         } else { /* opt == 254 */
-            code_filename = ebpf_options_parser_bpf_code_254[exID];
+            code_filename = ebpf_options_parser_bpf_code_254[exID].filename;
+            (pcb->cnx).current_plugin_name = ebpf_options_parser_bpf_code_254[exID].pluginName;
         }
         if (code_filename) {
             printf("code_filename exp: %s\n", code_filename);
@@ -115,7 +118,8 @@ int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt) {
             return ERR_VAL; /* Unknown TCP option is being used */
         }
     } else {
-        code_filename = ebpf_options_parser_bpf_code[opt];
+        code_filename = ebpf_options_parser_bpf_code[opt].filename;
+        (pcb->cnx).current_plugin_name = ebpf_options_parser_bpf_code[opt].pluginName;
         if (code_filename) {
             printf("code_filename non-exp: %s\n", code_filename);
             uint64_t ret = run_ubpf_with_args(pcb, code_filename, option_length);// ,NULL);
@@ -150,15 +154,17 @@ u32_t *ebpf_write_tcp_uto_option(struct tcp_pcb *pcb, u32_t *opts) { /* TODO: us
      *                but is that functional?...
      */
     printf("ebpf_write_tcp_uto_option\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/user_timeout/write_tcp_uto_option.bpf";
+    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/user_timeout/write_tcp_uto_option.bpf";
     printf("ebpf_write_tcp_uto_option: Before calling run_ubpf_with_args, opts is at %p\n", opts);
+    (pcb->cnx).current_plugin_name = "UTO_plugin"; /* TODO: changer de façon générique, on devrait avoir une linked list de writers avec noms */
     return run_ubpf_with_args(pcb, code_filename, opts);
 }
 
 u32_t *ebpf_write_tcp_rto_option(struct tcp_pcb *pcb, u32_t *opts) {
     printf("ebpf_write_tcp_rto_option\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/retransmission_timeout/write_tcp_rto_option.bpf";
+    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/write_tcp_rto_option.bpf";
     printf("ebpf_write_tcp_rto_option: Before calling run_ubpf_with_args, opts is at %p\n", opts);
+    (pcb->cnx).current_plugin_name = "RTO_plugin"; /* TODO: changer de façon générique, on devrait avoir une linked list de writers avec noms */
     return run_ubpf_with_args(pcb, code_filename, opts);
 }
 
@@ -434,15 +440,14 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, function_index++, "get_tmr", get_tmr);
     ubpf_register(vm, function_index++, "set_opt", set_opt);
     ubpf_register(vm, function_index++, "tcp_get_next_optbyte", tcp_get_next_optbyte);
-    ubpf_register(vm, function_index++, "get_rto_max", get_rto_max);
-    ubpf_register(vm, function_index++, "set_rto_max", set_rto_max);
     ubpf_register(vm, function_index++, "get_user_timeout", get_user_timeout);
     ubpf_register(vm, function_index++, "set_user_timeout", set_user_timeout);
     ubpf_register(vm, function_index++, "get_rto", get_rto);
     ubpf_register(vm, function_index++, "help_printf_sint16_t", help_printf_sint16_t);
     ubpf_register(vm, function_index++, "get_cnx", get_cnx);
     ubpf_register(vm, function_index++, "get_input", get_input);
-
+    ubpf_register(vm, function_index++, "get_metadata", get_metadata);
+    ubpf_register(vm, function_index++, "set_metadata", set_metadata);
 
 
 
@@ -453,16 +458,43 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, 63, "membound_fail", membound_fail);
 }
 
-void ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID) {
+void ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID, const char *plugin_name) {
     printf("Got registration for opt %u, exID: %x\n", opt, exID);
+    if (opt > 255) {
+        printf("Error: The option kind must be contained in the [0, 255] interval\n");
+        return;
+    }
+    if (exID > 65535) {
+        printf("Error: The option experimental ID (ExID) must be contained in the [0, 65535] interval\n");
+        return;
+    }
     char *parser_filename = malloc(strlen(code_filename) + 1);
+    if (!parser_filename) {
+        printf("ERROR: Could not malloc parser_filename in ubpf_register_tcp_option_parser\n");
+        return;
+    }
     strcpy(parser_filename, code_filename);
-    printf("Parsed filename: %s\n", parser_filename);
+
+    char *pname = malloc(strlen(plugin_name) + 1);
+    if (!pname) {
+        printf("ERROR: Could not malloc parser_filename in ubpf_register_tcp_option_parser\n");
+        free(parser_filename);
+        return;
+    }
+    strcpy(pname, plugin_name);
+
+    printf("Parsed filename: %s, parsed plugin_name: %s\n", parser_filename, pname);
     if (opt == 253) {
-        ebpf_options_parser_bpf_code_253[exID] = parser_filename;
+        printf("%p\n", &ebpf_options_parser_bpf_code_253[exID]);
+        ebpf_options_parser_bpf_code_253[exID].filename = parser_filename;
+        ebpf_options_parser_bpf_code_253[exID].pluginName = pname;
     } else if (opt == 254) {
-        ebpf_options_parser_bpf_code_254[exID] = parser_filename;
+        printf("%p\n", &ebpf_options_parser_bpf_code_254[exID]);
+        ebpf_options_parser_bpf_code_254[exID].filename = parser_filename;
+        ebpf_options_parser_bpf_code_254[exID].pluginName = pname;
     } else {
-        ebpf_options_parser_bpf_code[opt] = parser_filename;
+        printf("%p\n", &ebpf_options_parser_bpf_code[opt]);
+        ebpf_options_parser_bpf_code[opt].filename = parser_filename;
+        ebpf_options_parser_bpf_code[opt].pluginName = pname;
     }
 }

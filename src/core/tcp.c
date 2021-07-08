@@ -1947,8 +1947,8 @@ tcp_alloc(u8_t prio)
     pcb->keep_cnt   = TCP_KEEPCNT_DEFAULT;
 #endif /* LWIP_TCP_KEEPALIVE */
 
-    /* Initiliaze cnx attributes */
-    (pcb->cnx).rto_max = 1 << 15 - 1; /* Init to max positive value of rto */
+    /* Create the plugins memory map */
+    (pcb->cnx).plugins_memory_map = clone_plugin_memory_map(global_plugins_memory_map);
   }
   return pcb;
 }

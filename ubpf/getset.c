@@ -9,15 +9,45 @@ tcp_ubpf_cnx_t *get_cnx(struct tcp_pcb *pcb) {
 }
 
 /*
- * Returns the (index+1)th input passed to the tcp_ubpf context or NULL if it is out of range
+ * Returns the (index+1)th input passed to the tcp_ubpf context or 0 if it is out of range
  */
 int64_t get_input(tcp_ubpf_cnx_t *cnx, int index) {
     if (index >= cnx->inputc) {
         printf("uBPF: error in get_input: out of range\n");
-        return NULL;
+        return 0;
     }
     printf("Index is : %d. Returning object at addr %p\n", index, cnx->inputv[index]);
     return cnx->inputv[index];
+}
+
+/*
+ * Returns the (index+1)th variable stocked in the plugin's context or 0 if it is out of range
+ */
+uint64_t get_metadata(tcp_ubpf_cnx_t *cnx, int index) {
+    plugins_memory_t *metadata_node = find_plugin_memory_node(cnx->plugins_memory_map, cnx->current_plugin_name);
+    if (!metadata_node) {
+        printf("uBPF: error in get_metadata: no node corresponds to this plugin\n");
+        return 0;
+    }
+    if (index >= metadata_node->mem_len) {
+        printf("uBPF: error in get_metadata: out of range\n");
+        return 0;
+    }
+    return metadata_node->mem_array[index];
+}
+
+/*
+ * Sets the (index+1)th variable stocked in the plugin's context
+ */
+void set_metadata(tcp_ubpf_cnx_t *cnx, int index, uint64_t value) {
+    plugins_memory_t *metadata_node = find_plugin_memory_node(cnx->plugins_memory_map, cnx->current_plugin_name);
+    if (!metadata_node) {
+        printf("uBPF: error in get_metadata: no node corresponds to this plugin\n");
+    } else if (index >= metadata_node->mem_len) {
+        printf("uBPF: error in get_metadata: out of range\n");
+    } else {
+        metadata_node->mem_array[index] = value;
+    }
 }
 
 /*
@@ -125,19 +155,6 @@ s16_t get_rto(struct tcp_pcb *pcb) {
     /* TODO: modify using TCP_TMR_INTERVAL */
     printf("Returning rto: %d\n", pcb->rto);
     return pcb->rto;
-}
-
-s16_t get_rto_max(tcp_ubpf_cnx_t *cnx) {
-    /* TODO: modify using TCP_TMR_INTERVAL */
-    printf("Returning rto_max: %d\n", cnx->rto_max);
-    return cnx->rto_max;
-}
-
-void set_rto_max(tcp_ubpf_cnx_t *cnx, u16_t timeout) {
-    /* TODO: modify using TCP_TMR_INTERVAL */
-    cnx->rto_max = timeout;
-    printf("rto_max set to %u\n", timeout);
-    printf("rto_max set to 0x%x\n", timeout);
 }
 
 u32_t get_user_timeout(struct tcp_pcb *pcb) {

@@ -6,10 +6,21 @@
  * Returns the pcb corresponding to the tcp_ubpf context
  */
 tcp_ubpf_cnx_t *get_cnx(struct tcp_pcb *pcb);
+
 /*
- * Returns the (index+1)th input passed to the tcp_ubpf context or NULL if it is out of range
+ * Returns the (index+1)th input passed to the tcp_ubpf context or 0 if it is out of range
  */
 int64_t get_input(tcp_ubpf_cnx_t *cnx, int index);
+
+/*
+ * Returns the (index+1)th variable stocked in the plugin's context or 0 if it is out of range
+ */
+uint64_t get_metadata(tcp_ubpf_cnx_t *cnx, int index);
+
+/*
+ * Sets the (index+1)th variable stocked in the plugin's context
+ */
+void set_metadata(tcp_ubpf_cnx_t *cnx, int index, uint64_t value);
 
 void help_printf_uint8_t(uint8_t val);
 
@@ -23,8 +34,7 @@ void help_printf_str(char *s);
 
 void help_printf_ptr(void *p);
 
-/* TODO: define several functions in other file like getset.c, getset.h for pquic */
-/* TODO: use "tcpflags_t", have to include here + in plugin, -> lwip_interal.h ? */
+/* TODO: use "tcpflags_t", have to include here + in plugin, -> lwip_internal.h ? */
 uint16_t get_flag(struct tcp_pcb *pcb);
 
 u32_t get_last_acked_seqno(struct tcp_pcb *pcb);
@@ -52,10 +62,6 @@ u32_t custom_ntohl(u32_t x);
 void set_opt(u32_t *opts, int index, u32_t value);
 
 s16_t get_rto(struct tcp_pcb *pcb);
-
-s16_t get_rto_max(tcp_ubpf_cnx_t *cnx);
-
-void set_rto_max(tcp_ubpf_cnx_t *cnx, u16_t timeout);
 
 u32_t get_user_timeout(struct tcp_pcb *pcb);
 

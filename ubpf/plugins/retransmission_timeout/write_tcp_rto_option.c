@@ -17,7 +17,7 @@ u32_t *write_tcp_rto_option(struct tcp_pcb *pcb) {
 	u8_t kind = TCP_OPT_RTO;
 	u8_t length = 6;
 	u16_t exID = TCP_ExID_RTO;
-	u16_t rto_max = RTO_MAX_VALUE; /* in ms for now */
+	u16_t rto_max = RTO_MAX_VALUE; /* in ms for now, passed through a macro at compilation time */
 	/* Need to pad with 2 NOP options as the option takes 6 bytes -> needs to be aligned */
 	u32_t opts_value = custom_htonl((u32_t) kind << 24 | (u32_t) length << 16 | exID);
 	set_opt(opts, 0, opts_value);

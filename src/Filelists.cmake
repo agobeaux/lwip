@@ -59,6 +59,7 @@ set(lwipcore_SRCS
     ${LWIP_DIR}/src/core/udp.c
     ${LWIP_DIR}/ubpf/getset.c
     ${LWIP_DIR}/ubpf/vm/ubpf.c
+    ${LWIP_DIR}/src/core/map.c
 )
 set(lwipcore4_SRCS
     ${LWIP_DIR}/src/core/ipv4/acd.c
