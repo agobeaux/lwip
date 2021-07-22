@@ -30,7 +30,7 @@ uint64_t get_metadata(tcp_ubpf_cnx_t *cnx, int index) {
         return 0;
     }
     if (index >= metadata_node->mem_len) {
-        printf("uBPF: error in get_metadata: out of range\n");
+        printf("uBPF: error in get_metadata: index %d is out of range\n", index);
         return 0;
     }
     return metadata_node->mem_array[index];

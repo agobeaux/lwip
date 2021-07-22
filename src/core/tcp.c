@@ -1362,6 +1362,7 @@ tcp_slowtmr_start:
     }
 #endif /* TCP_QUEUE_OOSEQ */
 
+    clock_t start_timeouts = clock();
     /* Check if this PCB has stayed too long in SYN-RCVD */
     if (pcb->state == SYN_RCVD) {
       if ((u32_t)(tcp_ticks - pcb->tmr) >
@@ -1381,10 +1382,12 @@ tcp_slowtmr_start:
 
 
     /* TCP_SLOW_INTERVAL not used as the threshold is pcb->rto_max which should also be in ticks... -> API function should take care of this */
-
-    if (ebpf_should_drop_connection_rto(pcb)) {
+    clock_t start_rto_timeout = clock();
+    int ret = ebpf_should_drop_connection_rto(pcb);
+    clock_t end_rto_timeout = clock();
+    if (ret) {
       ++pcb_remove;
-      LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: removing pcb because of eBPF plugins UTO\n"));
+      LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: removing pcb because of eBPF plugin RTO\n"));
     }
 
     /* If there is unacknowledged data and the time between now and the last segment acknowledging new data is greater than UTO, timeout */
@@ -1392,6 +1395,7 @@ tcp_slowtmr_start:
       ++pcb_remove;
       LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: removing pcb because of user timeout\n"));
     }
+    clock_t end_timeouts_check = clock();
 
 
     /* If the PCB should be removed, do it. */
@@ -1429,7 +1433,23 @@ tcp_slowtmr_start:
       if (tcp_active_pcbs_changed) {
         goto tcp_slowtmr_start;
       }
+      clock_t end_timeouts = clock();
+      printf("Time taken by the timeouts (check+remove): %fms\n"
+             "Time taken by the timeouts checks: %fms\n"
+             "Time taken by rto check: %fms\n",
+             ((double) (end_timeouts-start_timeouts))/CLOCKS_PER_SEC*1000,
+             ((double) (end_timeouts_check-start_timeouts))/CLOCKS_PER_SEC*1000,
+             ((double) (end_rto_timeout-start_rto_timeout))/CLOCKS_PER_SEC*1000);
     } else {
+      clock_t end_timeouts = clock();
+      printf("Time taken by the timeouts (check+remove): %fms\n"
+             "Time taken by the timeouts checks: %fms\n"
+             "Time taken by rto check: %fms\n",
+             ((double) (end_timeouts-start_timeouts))/CLOCKS_PER_SEC*1000,
+             ((double) (end_timeouts_check-start_timeouts))/CLOCKS_PER_SEC*1000,
+             ((double) (end_rto_timeout-start_rto_timeout))/CLOCKS_PER_SEC*1000);
+
+
       /* get the 'next' element now and work with 'prev' below (in case of abort) */
       prev = pcb;
       pcb = pcb->next;

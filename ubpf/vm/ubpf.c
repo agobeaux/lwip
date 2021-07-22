@@ -72,7 +72,11 @@ int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb) { /* u64_t time_waiting
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/ebpf_should_drop_connection_rto.bpf";
     /* LWIP_UNUSED_ARG(time_waiting_unacked); */
     (pcb->cnx).current_plugin_name = "RTO_plugin"; /* TODO: modifier pour que ce soit dynamique... Liste de fonctions de timeout et voilà... */
-    return run_ubpf_with_args(pcb, code_filename);// ,NULL);
+    clock_t start = clock();
+    int ret =  run_ubpf_with_args(pcb, code_filename);// ,NULL);
+    clock_t end = clock();
+    printf("Time taken by ebpf_should_drop_connection_rto running: %fms\n", ((double) (end-start)) / CLOCKS_PER_SEC * 1000);
+    return ret;
 }
 
 int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt) {
@@ -157,7 +161,13 @@ u32_t *ebpf_write_tcp_uto_option(struct tcp_pcb *pcb, u32_t *opts) { /* TODO: us
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/user_timeout/write_tcp_uto_option.bpf";
     printf("ebpf_write_tcp_uto_option: Before calling run_ubpf_with_args, opts is at %p\n", opts);
     (pcb->cnx).current_plugin_name = "UTO_plugin"; /* TODO: changer de façon générique, on devrait avoir une linked list de writers avec noms */
-    return run_ubpf_with_args(pcb, code_filename, opts);
+    //return run_ubpf_with_args(pcb, code_filename, opts);
+
+    clock_t start = clock();
+    u32_t *ret =  run_ubpf_with_args(pcb, code_filename, opts);
+    clock_t end = clock();
+    printf("Time taken by ebpf_write_tcp_uto_option running: %fms\n", ((double) (end-start)) / CLOCKS_PER_SEC*1000);
+    return ret;
 }
 
 u32_t *ebpf_write_tcp_rto_option(struct tcp_pcb *pcb, u32_t *opts) {
@@ -165,7 +175,11 @@ u32_t *ebpf_write_tcp_rto_option(struct tcp_pcb *pcb, u32_t *opts) {
     const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/write_tcp_rto_option.bpf";
     printf("ebpf_write_tcp_rto_option: Before calling run_ubpf_with_args, opts is at %p\n", opts);
     (pcb->cnx).current_plugin_name = "RTO_plugin"; /* TODO: changer de façon générique, on devrait avoir une linked list de writers avec noms */
-    return run_ubpf_with_args(pcb, code_filename, opts);
+    clock_t start = clock();
+    u32_t *ret =  run_ubpf_with_args(pcb, code_filename, opts);
+    clock_t end = clock();
+    printf("Time taken by ebpf_write_tcp_rto_option running: %fms\n", ((double) (end-start)) / CLOCKS_PER_SEC*1000);
+    return ret;
 }
 
 u32_t *ebpf_write_tcp_options(struct tcp_pcb *pcb, u32_t *opts) {
@@ -216,7 +230,7 @@ int ebpf_should_fast_retransmit(struct tcp_pcb *pcb) {
 uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_args, ...) {
     int i;
     va_list ap;
-
+    clock_t start_run_ubpf_args = clock();
     va_start(ap, n_args);
     uint64_t args[n_args]; /* Cast everything to a uint64_t, thus able to contain pointers */
 
@@ -226,6 +240,8 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
     }
 
     va_end(ap);
+    clock_t end_args_handling = clock();
+    printf("Time taken to handle arguments for VM: %fms\n", ((double) (end_args_handling-start_run_ubpf_args)) /CLOCKS_PER_SEC*1000);
 
     pcb->cnx.inputc = n_args;
     pcb->cnx.inputv = args;
@@ -238,13 +254,15 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
 
     size_t mem_len = 20000; /* TODO: change this value */
     void *mem = (void*) malloc(20000);
+    clock_t end_malloc = clock();
+    printf("Time taken to malloc memory for the VM: %fms\n", ((double) (end_malloc-end_args_handling)) /CLOCKS_PER_SEC*1000);
 
     struct ubpf_vm *vm;
 
     uint64_t ret;
 
     printf("Beginning of run_ubpf()\n"); fflush(NULL); /* TODO: erase */
-
+    clock_t start_read_code = clock();
     code = readfile(code_filename, 1024*1024, &code_len);
     if (code == NULL) {
         fprintf(stderr, "run_ubpf_args: readfile had a problem: code = NULL\n");
@@ -253,6 +271,9 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
         }
         return (uint64_t)-1;
     }
+    clock_t end_read_code = clock();
+    printf("Time taken to read the eBPF program: %fms\n", ((double) (end_read_code-start_read_code)) /CLOCKS_PER_SEC*1000);
+
 
     if (mem_filename != NULL) {
         mem = readfile(mem_filename, 1024*1024, &mem_len);
@@ -260,7 +281,7 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
             return (uint64_t)-1;
         }
     }
-
+    clock_t creation_start = clock();
     vm = ubpf_create();
     if (!vm) {
         if (mem) {
@@ -271,6 +292,8 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
     }
 
     register_functions(vm);
+    clock_t register_end = clock();
+    printf("Time taken to create VM and register functions: %fms\n", ((double) (register_end-creation_start)) /CLOCKS_PER_SEC*1000);
 
     /*
      * The ELF magic corresponds to an RSH instruction with an offset,
@@ -290,6 +313,9 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
     }
 
     free(code);
+    clock_t loading_end = clock();
+    printf("Time taken to load the code in the VM: %fms\n", ((double) (loading_end-register_end)) /CLOCKS_PER_SEC*1000);
+
 
     if (rv < 0) {
         fprintf(stderr, "Failed to load code: %s\n", errmsg);
@@ -315,16 +341,24 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
             return (uint64_t)-1;
         }
         ret = fn(mem, mem_len);
+        clock_t exec_jit_end = clock();
+        printf("Time taken to execute the code using JIT: %fms\n", ((double) (exec_jit_end-loading_end)) /CLOCKS_PER_SEC*1000);
     } else {
         printf("jit not used\n"); fflush(NULL); /* TODO: erase */
         ret = ubpf_exec_with_arg(vm, pcb, mem, mem_len);
+        clock_t exec_nojit_end = clock();
+        printf("Time taken to execute the code without using JIT: %fms\n", ((double) (exec_nojit_end-loading_end)) /CLOCKS_PER_SEC*1000);
     }
 
     printf("0x%"PRIx64"\n", ret);
+    clock_t start_destroy_VM = clock();
     if (mem) {
         free(mem);
     }
     ubpf_destroy(vm);
+    clock_t end_destroy_VM = clock();
+    printf("Time taken to destroy the VM: %fms\n", ((double) (end_destroy_VM-start_destroy_VM))/CLOCKS_PER_SEC*1000);
+    printf("Time taken for run_ubpf_args except args handling + mem_len malloc: %fms\n", ((double) (end_destroy_VM-creation_start))/CLOCKS_PER_SEC*1000);
 
     return ret; /* TODO: change, should not return int but something else, protooop_arg_t like PQUIC */
 }

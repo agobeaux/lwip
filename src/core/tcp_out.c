@@ -81,6 +81,9 @@
 /* UBPF INCLUDE */
 #include "vm/ubpf.h"
 
+#include <time.h> /* TODO: delete, juste pour mesurer l'impact de la VM */
+
+
 #include <string.h>
 
 #ifdef LWIP_HOOK_FILENAME
@@ -1374,8 +1377,10 @@ tcp_output(struct tcp_pcb *pcb)
     if (pcb->state != SYN_SENT) {
       TCPH_SET_FLAG(seg->tcphdr, TCP_ACK);
     }
-
+    clock_t start_output_segment = clock();
     err = tcp_output_segment(seg, pcb, netif);
+    clock_t end_output_segment = clock();
+    printf("Time taken by tcp_output_segment: %fms\n", ((double) (end_output_segment-start_output_segment))/CLOCKS_PER_SEC*1000);
     if (err != ERR_OK) {
       /* segment could not be sent, for whatever reason */
       tcp_set_flags(pcb, TF_NAGLEMEMERR);
@@ -1431,6 +1436,9 @@ tcp_output(struct tcp_pcb *pcb)
       tcp_seg_free(seg);
     }
     seg = pcb->unsent;
+    clock_t end_output_seg_and_update_state = clock();
+    printf("Time taken to send the segment and update internal variables/structures: %fms\n",
+           ((double) (end_output_seg_and_update_state-start_output_segment))/CLOCKS_PER_SEC*1000);
   }
 #if TCP_OVERSIZE
   if (pcb->unsent == NULL) {
@@ -1553,7 +1561,11 @@ tcp_output_segment(struct tcp_seg *seg, struct tcp_pcb *pcb, struct netif *netif
     *(opts++) = PP_HTONL(0x01010402);
   }
 #endif
+  clock_t start = clock();
   opts = ebpf_write_tcp_options(pcb, opts);
+  clock_t end = clock();
+  printf("Time taken to write TCP options implemented with a pluglet: %fms\n", ((double) (end-start))/CLOCKS_PER_SEC*1000);
+  printf("opts: %p\n", opts);
 
   /* Set retransmission timer running if it is not currently enabled
      This must be set before checking the route. */
@@ -1930,7 +1942,11 @@ tcp_output_fill_options(struct tcp_pcb *pcb, struct pbuf *p, u8_t optflags, u8_t
 #ifdef LWIP_HOOK_TCP_OUT_ADD_TCPOPTS
   opts = LWIP_HOOK_TCP_OUT_ADD_TCPOPTS(p, tcphdr, pcb, opts);
 #endif
+  clock_t start = clock();
   opts = ebpf_write_tcp_options(pcb, opts);
+  clock_t end = clock();
+  printf("Time taken to write TCP options implemented with a pluglet: %fms\n", ((double) (end-start))/CLOCKS_PER_SEC*1000);
+  printf("opts: %p\n", opts);
 
   LWIP_UNUSED_ARG(pcb);
   LWIP_UNUSED_ARG(sacks_len);
@@ -2050,6 +2066,8 @@ tcp_send_empty_ack(struct tcp_pcb *pcb)
   struct pbuf *p;
   u8_t optlen, optflags = 0;
   u8_t num_sacks = 0;
+  clock_t start, end;
+  start = clock();
 
   LWIP_ASSERT("tcp_send_empty_ack: invalid pcb", pcb != NULL);
 
@@ -2073,6 +2091,8 @@ tcp_send_empty_ack(struct tcp_pcb *pcb)
     tcp_set_flags(pcb, TF_ACK_DELAY | TF_ACK_NOW);
     LWIP_DEBUGF(TCP_OUTPUT_DEBUG, ("tcp_output: (ACK) could not allocate pbuf\n"));
     return ERR_BUF;
+    end = clock();
+    printf("Time taken by tcp_send_empty_ack: %fms\n", ((double) (end-start))/CLOCKS_PER_SEC*1000);
   }
   tcp_output_fill_options(pcb, p, optflags, num_sacks);
 
@@ -2090,7 +2110,8 @@ tcp_send_empty_ack(struct tcp_pcb *pcb)
     /* remove ACK flags from the PCB, as we sent an empty ACK now */
     tcp_clear_flags(pcb, TF_ACK_DELAY | TF_ACK_NOW);
   }
-
+  end = clock();
+  printf("Time taken by tcp_send_empty_ack: %fms\n", ((double) (end-start))/CLOCKS_PER_SEC*1000);
   return err;
 }
 

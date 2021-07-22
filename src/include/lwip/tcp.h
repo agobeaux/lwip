@@ -51,6 +51,8 @@
 #include "lwip/ip6.h"
 #include "lwip/ip6_addr.h"
 
+#include <time.h> /* TODO: delete, juste pour mesurer l'impact de la VM */
+
 /* Maps linking plugins and memory shared among one plugin (with multiple sub-plugins maybe) */
 #include "lwip/map.h"
 

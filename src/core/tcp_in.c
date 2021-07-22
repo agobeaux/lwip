@@ -1909,6 +1909,8 @@ tcp_parseopt(struct tcp_pcb *pcb)
 #if LWIP_TCP_TIMESTAMPS
   u32_t tsval;
 #endif
+  clock_t start_parse_opt;
+  clock_t end_parse_opt;
 
   LWIP_ASSERT("tcp_parseopt: invalid pcb", pcb != NULL);
 
@@ -2006,7 +2008,10 @@ tcp_parseopt(struct tcp_pcb *pcb)
 #endif /* LWIP_TCP_SACK_OUT */
         default:
           /* Here, we can first check if a plugin can parse this option */
+          start_parse_opt = clock();
           err = ebpf_parse_tcp_option(pcb, opt);
+          end_parse_opt = clock();
+          printf("Time taken to parse the option %u: %fms\n", opt, ((double) (end_parse_opt-start_parse_opt)/CLOCKS_PER_SEC*1000));
           if (err == ERR_OK) {
             LWIP_DEBUGF(TCP_INPUT_DEBUG, ("tcp_parseopt: other, parsed by eBPF\n"));
           } else if (err == ERR_VAL) {

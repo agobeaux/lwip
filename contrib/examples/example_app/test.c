@@ -655,8 +655,8 @@ main_loop(void)
   add_plugin_memory(global_plugins_memory_map, "RTO_plugin", 1, false); /* Reserve one variable for the RTO plugin */
 
   /* Plugins used */
-  /*set_use_uto_option();
-  set_use_rto_option();
+  set_use_uto_option();
+  /*set_use_rto_option();
   */
   ubpf_register_tcp_option_parser(
     "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/user_timeout/parse_tcp_uto_option.bpf",
