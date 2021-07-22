@@ -58,6 +58,8 @@
 
 #include <string.h>
 
+#define MY_TCP_MSS 1020
+
 /* Currently, only TCP is implemented */
 #if LWIP_TCP && LWIP_CALLBACK_API
 
@@ -335,9 +337,9 @@ lwiperf_tcp_client_send_more(lwiperf_state_tcp_t *conn)
       /* transmit data */
       /* @todo: every x bytes, transmit the settings again */
       txptr = LWIP_CONST_CAST(void *, &lwiperf_txbuf_const[conn->bytes_transferred % 10]);
-      txlen_max = TCP_MSS;
+      txlen_max = MY_TCP_MSS;
       if (conn->bytes_transferred == 48) { /* @todo: fix this for intermediate settings, too */
-        txlen_max = TCP_MSS - 24;
+        txlen_max = MY_TCP_MSS - 24;
       }
       apiflags = 0; /* no copying needed */
       send_more = 1;
@@ -350,7 +352,7 @@ lwiperf_tcp_client_send_more(lwiperf_state_tcp_t *conn)
         printf("ERR_MEM happened -> sending half...\n");
         txlen /= 2;
       }
-    } while ((err == ERR_MEM) && (txlen >= (TCP_MSS / 2)));
+    } while ((err == ERR_MEM) && (txlen >= (MY_TCP_MSS / 2)));
 
     if (err == ERR_OK) {
       conn->bytes_transferred += txlen;
@@ -810,7 +812,7 @@ void* lwiperf_start_tcp_client(const ip_addr_t* remote_addr, u16_t remote_port,
   settings.num_threads = htonl(1);
   settings.remote_port = htonl(LWIPERF_TCP_PORT_DEFAULT);
   /* TODO: implement passing duration/amount of bytes to transfer */
-  bool is_duration_limited = false;
+  bool is_duration_limited = true;
   if (is_duration_limited) {
     settings.amount = htonl((u32_t)-3000); /* 3000 pour 30 s */
     printf("Duration of the transfer in lwiperf: %u\n", -settings.amount);
