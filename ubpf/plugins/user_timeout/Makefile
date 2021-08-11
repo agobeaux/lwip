@@ -6,7 +6,7 @@ endif
 ifndef UTO_TIMEOUT
 	UTO_TIMEOUT=1600
 endif
-CFLAGS=-I../../../src/include -I../../../contrib/examples/example_app -I../../../contrib/ -I../../../contrib/ports/unix/port/include -I../.. -DACK_THRESHOLD=$(ACK_THRESHOLD)
+CFLAGS=-I../../../src/include -I../../../contrib/examples/example_app -I../../../contrib/ -I../../../contrib/ports/unix/port/include -I../.. -DUTO_GRANULARITY=$(UTO_GRANULARITY) -DUTO_TIMEOUT=$(UTO_TIMEOUT)
 
 all: $(SRC) $(OBJ)
 

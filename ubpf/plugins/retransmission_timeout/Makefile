@@ -3,7 +3,7 @@ OBJ=$(SRC:.c=.bpf)
 ifndef RTO_MAX_VALUE
 	RTO_MAX_VALUE=1600
 endif
-CFLAGS=-I../../../src/include -I../../../contrib/examples/example_app -I../../../contrib/ -I../../../contrib/ports/unix/port/include -I../.. -DACK_THRESHOLD=$(ACK_THRESHOLD)
+CFLAGS=-I../../../src/include -I../../../contrib/examples/example_app -I../../../contrib/ -I../../../contrib/ports/unix/port/include -I../.. -DRTO_MAX_VALUE=$(RTO_MAX_VALUE)
 
 all: $(SRC) $(OBJ)
 
