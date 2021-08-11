@@ -113,8 +113,8 @@ wait
 sleep 1
 # Append result to file
 #grep -a "IPERF report" server_user_timeout.out >> server_user_timeout_perf_ackrate_${ACK_THRESHOLD}servrate_${server_rate}clirate_${client_rate}.txt
-grep -a "IPERF report" measurements/data/user_timeout/client_user_timeout.out >> measurements/data/user_timeout/client_user_timeout_perf_ackrate_${ACK_THRESHOLD}_IFDelay_${IF_DELAY}.txt
+grep -a "IPERF report" measurements/data/user_timeout/client_user_timeout.out >> measurements/data/user_timeout/client_user_timeout_perf_ackrate_${ACK_THRESHOLD}_UTO_timeout_${UTO_TIMEOUT}_IFDelay_${IF_DELAY}.txt
 
 echo "Performance of this transfer:"
-tail -n 1 measurements/data/user_timeout/client_user_timeout_perf_ackrate_${ACK_THRESHOLD}_IFDelay_${IF_DELAY}.txt
+tail -n 1 measurements/data/user_timeout/client_user_timeout_perf_ackrate_${ACK_THRESHOLD}_UTO_timeout_${UTO_TIMEOUT}_IFDelay_${IF_DELAY}.txt
 

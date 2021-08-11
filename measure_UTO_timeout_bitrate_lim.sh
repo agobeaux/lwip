@@ -8,9 +8,14 @@ client_rate=1
 bitrate=100000
 burst=10000
 
-if [[ $# -ne 2 ]]; then
-  echo "Usage : source ./measure_UTO_timeout.sh UTO_TIMEOUT (in seconds) BIT_RATE (bits/s)"
+if [[ $# -ne 2 && $# -ne 3 ]]; then
+  echo "Usage : source ./measure_UTO_timeout.sh UTO_TIMEOUT (in seconds) BIT_RATE (bits/s) [100% loss duration (in seconds)]"
   return
+fi
+
+LOSS_DURATION=0
+if [[ $# -eq 3 ]]; then
+	LOSS_DURATION=$3
 fi
 
 ACK_THRESHOLD=1
@@ -114,6 +119,13 @@ server_PID=$!
 timeout 35s sudo  ./build/contrib/ports/unix/example_app_client/example_app_client >measurements/data/user_timeout/client_user_timeout.out 2>measurements/data/user_timeout/client_user_timeout.err &
 client_PID=$!
 
+if [[ $LOSS_DURATION -gt 0 ]]; then
+	sleep 12.6
+	tc qdisc replace dev tap1 root netem loss 100%
+	sleep $LOSS_DURATION
+	tc qdisc delete dev tap1 root netem loss 100%
+fi
+
 wait
 
 # After 30 seconds the lwiperf test should have finished, add 5 more seconds just in case for cmake ${aaazzz)
@@ -125,7 +137,7 @@ sleep 1
 # Append result to file
 #grep -a "IPERF report" server_user_timeout.out >> server_user_timeout_perf_ackrate_${ACK_THRESHOLD}servrate_${server_rate}clirate_${client_rate}.txt
 
-grep -a "IPERF report" measurements/data/user_timeout/client_user_timeout.out >> measurements/data/user_timeout/client_user_timeout_perf_ackrate_${ACK_THRESHOLD}_bitrate_${bitrate}_burst_${burst}.txt
+grep -a "IPERF report" measurements/data/user_timeout/client_user_timeout.out >> measurements/data/user_timeout/client_user_timeout_perf_ackrate_${ACK_THRESHOLD}_UTO_timeout_${UTO_TIMEOUT}_bitrate_${bitrate}_burst_${burst}_LOSSDURATION_${LOSS_DURATION}.txt
 
 echo "Performance of this transfer:"
-tail -n 1 measurements/data/user_timeout/client_user_timeout_perf_ackrate_${ACK_THRESHOLD}_bitrate_${bitrate}_burst_${burst}.txt
+tail -n 1 measurements/data/user_timeout/client_user_timeout_perf_ackrate_${ACK_THRESHOLD}_UTO_timeout_${UTO_TIMEOUT}_bitrate_${bitrate}_burst_${burst}_LOSSDURATION_${LOSS_DURATION}.txt

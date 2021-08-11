@@ -1,0 +1,9 @@
+IPERF report: type=1, remote: 192.168.1.3:5001, total bytes: 76704024, duration in ms: 30000, kbits/s: 20448
+IPERF report: type=1, remote: 192.168.1.3:5001, total bytes: 49336404, duration in ms: 30000, kbits/s: 13152
+IPERF report: type=1, remote: 192.168.1.3:5001, total bytes: 43564224, duration in ms: 30000, kbits/s: 11616
+IPERF report: type=1, remote: 192.168.1.3:5001, total bytes: 43429584, duration in ms: 30000, kbits/s: 11576
+IPERF report: type=1, remote: 192.168.1.3:5001, total bytes: 43451004, duration in ms: 30000, kbits/s: 11584
+IPERF report: type=1, remote: 192.168.1.3:5001, total bytes: 51240744, duration in ms: 30000, kbits/s: 13664
+IPERF report: type=1, remote: 192.168.1.3:5001, total bytes: 50258484, duration in ms: 30000, kbits/s: 13400
+IPERF report: type=1, remote: 192.168.1.3:5001, total bytes: 80496384, duration in ms: 30000, kbits/s: 21464
+IPERF report: type=1, remote: 192.168.1.3:5001, total bytes: 77470044, duration in ms: 30000, kbits/s: 20656
