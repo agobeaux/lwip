@@ -11,8 +11,6 @@ u32_t *write_tcp_uto_option(struct tcp_pcb *pcb) {
 		help_printf_str("uBPF: write_tcp_uto_option: input opts could not be retrieved");
 		return ERR_ARG;
 	}
-	help_printf_str("I'm in write_tcp_uto_option, address of opts");
-	help_printf_ptr(opts);
 	u8_t kind = TCP_OPT_UTO;
 	u8_t granularity = UTO_GRANULARITY;
 	u8_t length = 4;
@@ -20,9 +18,5 @@ u32_t *write_tcp_uto_option(struct tcp_pcb *pcb) {
 	/* No need to pad with NOP options as the option takes 4 bytes (and thus is aligned) */
 	u32_t opts_value = custom_htonl((u32_t) kind << 24 | (u32_t) length << 16 | (u32_t) granularity << 15 | timeout);
 	set_opt(opts, 0, opts_value);
-	help_printf_str("I'm in write_tcp_uto_option, address of opts");
-	help_printf_ptr(opts);
-	help_printf_str("I'm in write_tcp_uto_option, address of opts+1");
-	help_printf_ptr(opts+1);
 	return opts+1;
 }

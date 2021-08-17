@@ -9,7 +9,7 @@ bitrate=100000
 burst=10000
 
 if [[ $# -ne 2 && $# -ne 3 ]]; then
-  echo "Usage : source ./measure_UTO_timeout.sh UTO_TIMEOUT (in seconds) BIT_RATE (bits/s) [100% loss duration (in seconds)]"
+  echo "Usage : source ./measure_UTO_timeout_bitrate_lim.sh UTO_TIMEOUT (in seconds) BIT_RATE (bits/s) [100% loss duration (in seconds)]"
   return
 fi
 

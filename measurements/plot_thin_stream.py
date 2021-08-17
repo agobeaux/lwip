@@ -5,15 +5,8 @@ import statistics
 from math import ceil
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
-# N = 3 # N is going from 1 to this value (3 here)
-# print(len(sys.argv))
-# print(sys.argv)
-# if len(sys.argv) > 1:
-#   N = int(sys.argv[1])
-
 ack_threshold = 1
-loss_percentages = [0, 5, 10, 15, 20] #[0, 10, 20, -1]
+loss_percentages = [5, 10, 15, 20] #[0, 10, 20, -1]
 num_packets_out_thresholds = [-1, 4]
 
 
@@ -40,7 +33,7 @@ for num_packets_out_threshold in num_packets_out_thresholds:
         if duration is not None:
           current_duration.append(duration)
     durations_for_numPackOut_threshold.append(current_duration)
-  
+
   durations.append(durations_for_numPackOut_threshold)
 
 
@@ -55,22 +48,19 @@ def odd(x):
 positions_without_thin_stream = [1.5*i-0.3 for i in range(1, 1+len(loss_percentages))]
 positions_with_thin_stream = [1.5*i+0.3 for i in range(1, 1+len(loss_percentages))]
 fig, ax = plt.subplots()
-bp_without = ax.boxplot(durations[0], positions=positions_without_thin_stream, notch=True,
+bp_without = ax.boxplot(durations[0], positions=positions_without_thin_stream, notch=False,
                         patch_artist=True, boxprops=dict(facecolor="C0"))
-bp_with = ax.boxplot(durations[1], positions=positions_with_thin_stream, notch=True,
+bp_with = ax.boxplot(durations[1], positions=positions_with_thin_stream, notch=False,
                      patch_artist=True, boxprops=dict(facecolor="C2"))
 
 ax.legend([bp_without["boxes"][0], bp_with["boxes"][0]], ['Default configuration', 'Using thin_stream detection'])
-#for index, duration_list in enumerate(durations):
-#  thin_stream = "using thin_stream" if index % 2 == 1 else "without thin_stream"
-#  print('When loss_percentage = {}, the median duration is {} {}'.format(loss_percentages[index//2], statistics.median(duration_list), thin_stream))
 
 max_duration = 0
 for duration_list_for_case in durations:
   for duration_list in duration_list_for_case:
     for duration_value in duration_list:
       max_duration = max(max_duration, duration_value)
-#plt.ylim([0, 5000*ceil(max_duration/5000)+5])
+
 plt.title('Transfer duration [ms] with and without thin_stream detection\naccording to different data packet loss percentage')
 plt.ylabel('Transfer duration [ms]')
 plt.xlabel('Data packet loss percentage [%]')

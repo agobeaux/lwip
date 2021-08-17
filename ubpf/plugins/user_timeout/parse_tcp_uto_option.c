@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "lwip/tcp.h"
 #include "lwip/err.h"
 #include "getset.h"
@@ -28,8 +27,6 @@ int parse_tcp_uto_option(struct tcp_pcb *pcb) {
 		/* Parsed timeout is in seconds, put it in ms */
 		timeout = 1000 * timeout;
 	}
-	help_printf_str("granularity received :");
-	help_printf_uint8_t(granularity);
 	set_user_timeout(pcb, timeout);
 	return ERR_OK; /* Parsed option successfully */
 }

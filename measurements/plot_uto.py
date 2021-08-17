@@ -76,4 +76,4 @@ def plot_pcap(pcap_file, title, timeout_value):
   plt.show()
 
 plot_pcap(stop_pcap_fd, "UTO plugin activated, timeout after 5 seconds", 5)
-plot_pcap(restart_pcap_fd, "UTO plugins activate, timeout after 12 seconds", 12)
+plot_pcap(restart_pcap_fd, "UTO plugin activated, timeout after 12 seconds", 12)

@@ -9,7 +9,7 @@ bitrate=100000
 burst=10000
 
 if [[ $# -ne 2 ]]; then
-  echo "Usage : source ./measure_UTO_timeout.sh UTO_TIMEOUT (in seconds) IF_DELAY (ms)"
+  echo "Usage : source ./measure_UTO_timeout_if_delay.sh UTO_TIMEOUT (in seconds) IF_DELAY (ms)"
   return
 fi
 
@@ -117,4 +117,3 @@ grep -a "IPERF report" measurements/data/user_timeout/client_user_timeout.out >>
 
 echo "Performance of this transfer:"
 tail -n 1 measurements/data/user_timeout/client_user_timeout_perf_ackrate_${ACK_THRESHOLD}_UTO_timeout_${UTO_TIMEOUT}_IFDelay_${IF_DELAY}.txt
-

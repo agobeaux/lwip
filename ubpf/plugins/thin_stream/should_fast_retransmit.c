@@ -1,6 +1,4 @@
-#include <stdio.h>
 #include "lwip/tcp.h"
-#include "lwip/err.h"
 #include "getset.h"
 
 /* A connection is considered to be a thin-stream if it has less than
@@ -21,18 +19,12 @@ u8_t should_fast_retransmit(struct tcp_pcb *pcb) {
 
 	/* This already takes care of the wrap around behaviour of tcp (since unsigned bits are used) */
 	u32_t num_bytes_unacked = next_seqno - last_acked_seqno;
-	help_printf_str("Num bytes unacked:");
-	help_printf_uint32_t(num_bytes_unacked);
 	u32_t num_packets_out = num_bytes_unacked/mss;
 	u8_t dupacks = get_dupacks(pcb);
 
-	if ((int)num_packets_out < NUM_PACKETS_OUT_THRESHOLD) { /* TODO: < ou <= ? Dans Linux c'est < 4 */
-		help_printf_str("This connection is currently considered as a thin-stream");
-		help_printf_uint8_t(num_packets_out);
-		help_printf_uint8_t(NUM_PACKETS_OUT_THRESHOLD);
+	if ((int)num_packets_out < NUM_PACKETS_OUT_THRESHOLD) {
 		return dupacks >= 1; /* Should always be true when calling this function */
 	} else {
-		help_printf_str("Not in thin_stream");
 		/* Not a thin-stream: apply basic behaviour */
 		return dupacks >= 3;
 	}
