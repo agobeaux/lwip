@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "lwip/tcp.h"
 #include "lwip/err.h"
 #include "getset.h"
@@ -11,9 +10,6 @@ u32_t *write_tcp_rto_option(struct tcp_pcb *pcb) {
 	if (opts == NULL) {
 		help_printf_str("uBPF: write_tcp_uto_option: input opts could not be retrieved");
 	}
-	help_printf_str("I'm in write_tcp_uto_option, address of opts");
-	help_printf_ptr(opts);
-
 	u8_t kind = TCP_OPT_RTO;
 	u8_t length = 6;
 	u16_t exID = TCP_ExID_RTO;
@@ -23,9 +19,5 @@ u32_t *write_tcp_rto_option(struct tcp_pcb *pcb) {
 	set_opt(opts, 0, opts_value);
 	u32_t rto_max_padded = custom_htonl(rto_max << 16 | 0x0101);
 	set_opt(opts, 1, rto_max_padded);
-	help_printf_str("I'm in write_tcp_uto_option, address of opts");
-	help_printf_ptr(opts);
-	help_printf_str("I'm in write_tcp_uto_option, address of opts+2");
-	help_printf_ptr(opts+2);
-	return opts+2;
+	return opts+2; /* Return pointer to where the next options should be written */
 }

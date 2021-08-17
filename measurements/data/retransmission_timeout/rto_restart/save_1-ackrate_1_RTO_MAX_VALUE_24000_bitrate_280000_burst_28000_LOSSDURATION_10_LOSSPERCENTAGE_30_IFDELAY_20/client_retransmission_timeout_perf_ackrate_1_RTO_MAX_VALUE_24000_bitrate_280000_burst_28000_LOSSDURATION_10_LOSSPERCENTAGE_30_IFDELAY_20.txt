@@ -1,0 +1,1 @@
+IPERF report: type=1, remote: 192.168.1.3:5001, total bytes: 10403514, duration in ms: 30000, kbits/s: 2768

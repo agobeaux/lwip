@@ -151,10 +151,10 @@ void set_opt(u32_t *opts, int index, u32_t value) {
     printf("Returning from set_opt function\n");
 }
 
-s16_t get_rto(struct tcp_pcb *pcb) {
-    /* TODO: modify using TCP_TMR_INTERVAL */
-    printf("Returning rto: %d\n", pcb->rto);
-    return pcb->rto;
+u32_t get_rto(struct tcp_pcb *pcb) {
+    u32_t converted_rto = (u32_t) (((s32_t)pcb->rto) * TCP_SLOW_INTERVAL);
+    printf("Returning rto: %u\n", converted_rto);
+    return converted_rto;
 }
 
 u32_t get_user_timeout(struct tcp_pcb *pcb) {

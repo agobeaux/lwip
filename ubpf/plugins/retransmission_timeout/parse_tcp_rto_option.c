@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include "lwip/tcp.h"
 #include "lwip/err.h"
 #include "getset.h"

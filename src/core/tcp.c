@@ -1380,8 +1380,13 @@ tcp_slowtmr_start:
       }
     }
 
-
-    /* TCP_SLOW_INTERVAL not used as the threshold is pcb->rto_max which should also be in ticks... -> API function should take care of this */
+    /* Beginning of: lines added for RTO evaluation */
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    double time_in_mill = (tv.tv_sec) * 1000 + tv.tv_usec/1000;
+    printf("IN TCP_SLOWTMR just before should_drop_connection_rto: time is %fms\n", time_in_mill);
+    /* End of: lines added for RTO evaluation */
+    
     clock_t start_rto_timeout = clock();
     int ret = ebpf_should_drop_connection_rto(pcb);
     clock_t end_rto_timeout = clock();

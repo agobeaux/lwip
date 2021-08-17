@@ -1,6 +1,7 @@
 
 #include "lwip/tcp_in_helper.h" /* for tcp_get_next_optbyte */
 #include "lwip/tcp.h" /* this contains multiple types, including the tcp_ubpf_cnx_t */
+#include "lwip/priv/tcp_priv.h" /* for the definition of the constants (e.g. TCP_SLOW_INTERVAL) */
 
 /*
  * Returns the pcb corresponding to the tcp_ubpf context
@@ -61,7 +62,7 @@ u32_t custom_ntohl(u32_t x);
 
 void set_opt(u32_t *opts, int index, u32_t value);
 
-s16_t get_rto(struct tcp_pcb *pcb);
+u32_t get_rto(struct tcp_pcb *pcb);
 
 u32_t get_user_timeout(struct tcp_pcb *pcb);
 
