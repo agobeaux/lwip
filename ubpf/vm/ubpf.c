@@ -95,10 +95,10 @@ int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt) {
 
     if (opt == 253 || opt == 254) {
         u16_t exID = custom_ntohs(tcp_get_next_optbyte() | (tcp_get_next_optbyte() << 8));
-        if (opt == 253) {
+        if (opt == 253 && exID < 256) {
             code_filename = ebpf_options_parser_bpf_code_253[exID].filename;
             (pcb->cnx).current_plugin_name = ebpf_options_parser_bpf_code_253[exID].pluginName;
-        } else { /* opt == 254 */
+        } else if (opt == 254 && exID < 256) { /* opt == 254 */
             code_filename = ebpf_options_parser_bpf_code_254[exID].filename;
             (pcb->cnx).current_plugin_name = ebpf_options_parser_bpf_code_254[exID].pluginName;
         }
@@ -492,20 +492,20 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, 63, "membound_fail", membound_fail);
 }
 
-void ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID, const char *plugin_name) {
+int ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID, const char *plugin_name) {
     printf("Got registration for opt %u, exID: %x\n", opt, exID);
     if (opt > 255) {
         printf("Error: The option kind must be contained in the [0, 255] interval\n");
-        return;
+        return -1;
     }
-    if (exID > 65535) {
-        printf("Error: The option experimental ID (ExID) must be contained in the [0, 65535] interval\n");
-        return;
+    if (exID > 255) {
+        printf("Error: The option experimental ID (ExID) must be contained in the [0, 255] interval\n");
+        return -1;
     }
     char *parser_filename = malloc(strlen(code_filename) + 1);
     if (!parser_filename) {
         printf("ERROR: Could not malloc parser_filename in ubpf_register_tcp_option_parser\n");
-        return;
+        return -1;
     }
     strcpy(parser_filename, code_filename);
 
@@ -513,7 +513,7 @@ void ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t 
     if (!pname) {
         printf("ERROR: Could not malloc parser_filename in ubpf_register_tcp_option_parser\n");
         free(parser_filename);
-        return;
+        return -1;
     }
     strcpy(pname, plugin_name);
 
@@ -531,4 +531,5 @@ void ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t 
         ebpf_options_parser_bpf_code[opt].filename = parser_filename;
         ebpf_options_parser_bpf_code[opt].pluginName = pname;
     }
+    return 0;
 }

@@ -1379,13 +1379,6 @@ tcp_slowtmr_start:
         LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: removing pcb stuck in LAST-ACK\n"));
       }
     }
-
-    /* Beginning of: lines added for RTO evaluation */
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    double time_in_mill = (tv.tv_sec) * 1000 + tv.tv_usec/1000;
-    printf("IN TCP_SLOWTMR just before should_drop_connection_rto: time is %fms\n", time_in_mill);
-    /* End of: lines added for RTO evaluation */
     
     clock_t start_rto_timeout = clock();
     int ret = ebpf_should_drop_connection_rto(pcb);

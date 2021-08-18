@@ -3,7 +3,7 @@
 #include "getset.h"
 
 #define TCP_OPT_RTO 	253 /* Retransmission TimeOut option kind: 253 (experimental) */
-#define TCP_ExID_RTO	0x12EF /* Retransmission TimeOut Experimental ID: 134 */
+#define TCP_ExID_RTO	134 /* Retransmission TimeOut Experimental ID: 134 */
 u32_t *write_tcp_rto_option(struct tcp_pcb *pcb) {
 	tcp_ubpf_cnx_t *cnx = get_cnx(pcb);
 	u32_t *opts = (u32_t *)get_input(cnx, 0);

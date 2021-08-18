@@ -48,10 +48,12 @@ filename_pluginName_t ebpf_options_parser_bpf_code[256];
 
 /*
  * Experimental Options case: two buffers are needed. Those are similar to the previous one
- * as the ExID is 16 bits longs.
+ * as the ExID is 16 bits longs. Even though the size of an experimental option buffer should
+ * be 65536, we decided to restraing it to 256 as our work is a Proof of Concept and allocating
+ * 65536 cells for lwIP does not make sense (too huge). This should be replaced by a hash map.
  */
-filename_pluginName_t ebpf_options_parser_bpf_code_253[65536];
-filename_pluginName_t ebpf_options_parser_bpf_code_254[65536];
+filename_pluginName_t ebpf_options_parser_bpf_code_253[256];
+filename_pluginName_t ebpf_options_parser_bpf_code_254[256];
 
 /*
  * Those variables contain the options length for packets sent either during the options negotiation
@@ -226,7 +228,8 @@ uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_arg
  * This function adds an eBPF option parser that correponds to a certain option.
  * This function should not be called twice with the same option (and exID if applicable) or memory leaks will happen.
  * exID is only used with experimental options; this parameter is ignored when using a traditional tcp option.
+ * Returns 0 if successful, -1 otherwise.
  */
-void ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID, const char *plugin_name);
+int ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID, const char *plugin_name);
 
 #endif

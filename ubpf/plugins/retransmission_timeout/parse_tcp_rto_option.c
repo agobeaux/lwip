@@ -3,7 +3,7 @@
 #include "getset.h"
 
 #define TCP_OPT_RTO 	253 /* Retransmission TimeOut option kind: 253 (experimental) */
-#define TCP_ExID_RTO	0x12EF /* Retransmission TimeOut Experimental ID: 134 */
+#define TCP_ExID_RTO	134 /* Retransmission TimeOut Experimental ID: 134 */
 #define RTO_MAX_INDEX 0 /* Index of the rto_max value in the metadata array */
 int parse_tcp_rto_option(struct tcp_pcb *pcb) {
 	/* In this function, we parse the TCP RTO option */

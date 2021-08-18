@@ -651,6 +651,7 @@ main_loop(void)
 #if !NO_SYS
   err_t err;
   sys_sem_t init_sem;
+  int ret;
 #endif /* NO_SYS */
 #if USE_PPP
 #if !USE_ETHERNET
@@ -668,16 +669,17 @@ main_loop(void)
   /*set_use_uto_option();*/
   set_use_rto_option();
 
-  ubpf_register_tcp_option_parser(
+  ret = ubpf_register_tcp_option_parser(
     "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/user_timeout/parse_tcp_uto_option.bpf",
     28,
     0, /* useless param here */
     "UTO_plugin"
   );
-  ubpf_register_tcp_option_parser(
+  
+  ret = ubpf_register_tcp_option_parser(
     "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/parse_tcp_rto_option.bpf",
     253,
-    0x12EF,
+    134,
     "RTO_plugin"
   );
 
