@@ -58,7 +58,7 @@
 
 #include <string.h>
 
-#define MY_TCP_MSS 1016
+#define MY_TCP_MSS 1020
 
 /* Currently, only TCP is implemented */
 #if LWIP_TCP && LWIP_CALLBACK_API

@@ -1380,12 +1380,12 @@ tcp_slowtmr_start:
       }
     }
     
-    clock_t start_rto_timeout = clock();
+    clock_t start_timeout_pluglet = clock();
     int ret = ebpf_should_drop_connection_rto(pcb);
-    clock_t end_rto_timeout = clock();
+    clock_t end_timeout_pluglet = clock();
     if (ret) {
       ++pcb_remove;
-      LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: removing pcb because of eBPF plugin RTO\n"));
+      LWIP_DEBUGF(TCP_DEBUG, ("tcp_slowtmr: removing pcb because of eBPF pluglet\n"));
     }
 
     /* If there is unacknowledged data and the time between now and the last segment acknowledging new data is greater than UTO, timeout */
@@ -1437,7 +1437,7 @@ tcp_slowtmr_start:
              "Time taken by rto check: %fms\n",
              ((double) (end_timeouts-start_timeouts))/CLOCKS_PER_SEC*1000,
              ((double) (end_timeouts_check-start_timeouts))/CLOCKS_PER_SEC*1000,
-             ((double) (end_rto_timeout-start_rto_timeout))/CLOCKS_PER_SEC*1000);
+             ((double) (end_timeout_pluglet-start_timeout_pluglet))/CLOCKS_PER_SEC*1000);
     } else {
       clock_t end_timeouts = clock();
       printf("Time taken by the timeouts (check+remove): %fms\n"
@@ -1445,7 +1445,7 @@ tcp_slowtmr_start:
              "Time taken by rto check: %fms\n",
              ((double) (end_timeouts-start_timeouts))/CLOCKS_PER_SEC*1000,
              ((double) (end_timeouts_check-start_timeouts))/CLOCKS_PER_SEC*1000,
-             ((double) (end_rto_timeout-start_rto_timeout))/CLOCKS_PER_SEC*1000);
+             ((double) (end_timeout_pluglet-start_timeout_pluglet))/CLOCKS_PER_SEC*1000);
 
 
       /* get the 'next' element now and work with 'prev' below (in case of abort) */

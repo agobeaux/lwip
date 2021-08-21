@@ -31,6 +31,12 @@ typedef struct filename_pluginName {
    char *pluginName;
 } filename_pluginName_t;
 
+typedef struct option_writer_node {
+   struct writer_node *next;
+   char *filename;
+   char *pluginName;
+} option_writer_node_t;
+
 /*
  * Enable/disable some plugins
  * Not scalable, more scalable way: like PQUIC, enable by putting the path to the plugin folder
@@ -54,6 +60,20 @@ filename_pluginName_t ebpf_options_parser_bpf_code[256];
  */
 filename_pluginName_t ebpf_options_parser_bpf_code_253[256];
 filename_pluginName_t ebpf_options_parser_bpf_code_254[256];
+
+/*
+ * Each node of the list contains the writers that should be called when writing TCP options
+ * Those contain the eBPF filename that should be called and the name of the plugin they belong
+ * to.
+ */
+option_writer_node_t *ebpf_option_writers_list;
+
+filename_pluginName_t ebpf_delayed_ack;
+
+filename_pluginName_t ebpf_fast_retransmit;
+
+filename_pluginName_t ebpf_drop_connection;
+
 
 /*
  * Those variables contain the options length for packets sent either during the options negotiation
@@ -83,6 +103,8 @@ int ebpf_options_length;
 
 #define run_ubpf_with_args(pcb, filename, ...) run_ubpf_args(pcb, filename, N_ARGS( __VA_ARGS__), ## __VA_ARGS__)
 
+#define register_pluglet(insertion_point, code_filename, plugin_name, ...) register_pluglet_function(insertion_point, code_filename, plugin_name, N_ARGS( __VA_ARGS__), ## __VA_ARGS__)
+
 #elif defined(__GNUC__)
 
 /* GCC-style: named argument, empty arg is OK */
@@ -92,6 +114,8 @@ int ebpf_options_length;
 # define N_ARGS_HELPER2(x1, x2, x3, x4, x5, x6, x7, x8, x9, n, x...) n
 
 #define run_ubpf_with_args(pcb, filename, ...) run_ubpf_args(pcb, filename, N_ARGS(args), args)
+
+#define register_pluglet(insertion_point, code_filename, plugin_name, ...) register_pluglet_function(insertion_point, code_filename, plugin_name, N_ARGS(args), args)
 
 #else
 
@@ -167,21 +191,14 @@ ubpf_jit_fn ubpf_compile(struct ubpf_vm *vm, char **errmsg);
 
 /* FUNCTIONS DEFINED BEFORE = LIBRARY */
 
-/* Use the UTO option writer */
-void set_use_uto_option(void);
-
-/* Use the RTO option writer */
-void set_use_rto_option(void);
-
 /*
- * TODO: This function SHOULD be merged with the other one, but how do we know that we have to multiply the value by TCP_SLOW_INTERVAL?
- * Check if the connection should be dropped according to eBPF plugins. Currently: User Timeout option (UTO)
- * TODO: WRONG???!!! Should change the UTO if possible... A timeout exists and it should replace it....
- *      Well, the existing timeout is simply 2*MSL (Maximum Segment lifetime) which is 2*1minute.
- *      Well, we could want to have this set higher!... Should define the variable which holds the timeout value!
- *      UPDATE: Maybe we do not want that, this timer is for the TIME_WAIT state which is a closing one.
+ * Returns 1 if the connection should be dropped, 0 otherwise.
+ * The default behaviour is not to drop the connection as this mechanism is already present in lwIP
+ * and is complementary to the decision here. 
+ * Only one pluglet can be attached here. If either lwIP or the pluglet says that the connection should
+ * be dropped, it is dropped
  */
-int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb); /* u64_t time_waiting_unacked */
+int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb);
 
 /*
  * Parses tcp options
@@ -189,17 +206,6 @@ int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb); /* u64_t time_waiting_
  * any parser registered, and ERR_ARG if the eBPF parsing went wrong or if the length is badly formatted.
  */
 int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt);
-
-/*
- * Writes tcp option User TimeOut
- */
-u32_t *ebpf_write_tcp_uto_option(struct tcp_pcb *pcb, u32_t *opts);
-
-/*
- * Writes custom tcp option that puts a limit on the value or the retransmission timer rto
- */
-u32_t *ebpf_write_tcp_rto_option(struct tcp_pcb *pcb, u32_t *opts);
-
 /*
  * Writes the different TCP options that are enabled
  */
@@ -223,6 +229,42 @@ int ebpf_should_fast_retransmit(struct tcp_pcb *pcb);
  * Like run_ubpf but with extensible args
  */
 uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_args, ...);
+
+/*
+ * Registers pluglet functions based on the insertion_point given as argument.
+ * Returns 0 if successful, -1 otherwise.
+ */
+int register_pluglet_function(const char *insertion_point, const char *code_filename, const char *plugin_name, int n_args, ...);
+
+/*
+ * Registers a pluglet that determines if the connection should be dropped.
+ * Only one such pluglet can be registered. Registering a pluglet will delete the previous one.
+ * Returns 0 if successful, -1 otherwise.
+ */
+int ubpf_register_should_drop_connection(const char *code_filename, const char *plugin_name);
+
+/*
+ * Registers a pluglet that determines if a fast retransmit should be snt.
+ * Only one such pluglet can be registered. Registering a pluglet will delete the previous one.
+ * Returns 0 if successful, -1 otherwise.
+ */
+int ubpf_register_should_fast_retransmit(const char *code_filename, const char *plugin_name);
+
+/*
+ * Registers a pluglet that determines if an acknowledgement should be sent or delayed.
+ * Only one such pluglet can be registered. Registering a pluglet will delete the previous one.
+ * Returns 0 if successful, -1 otherwise.
+ */
+int ubpf_register_delayed_ack(const char *code_filename, const char *plugin_name);
+
+/*
+ * Registers a pluglet that writes a TCP option.
+ * This function should not be called multiple times for the same option or option+ExID.
+ * If this happens, the writer pluglet will be called as many times as registered. This will result
+ * in having the TCP options multiple times in each packet.
+ * Returns 0 if successful, -1 otherwise.
+ */
+int ubpf_register_tcp_option_writer(const char *code_filename, const char *plugin_name, int opt_len);
 
 /*
  * This function adds an eBPF option parser that correponds to a certain option.

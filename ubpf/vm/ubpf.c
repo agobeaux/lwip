@@ -51,29 +51,15 @@ static void usage(const char *name)
 }
 */
 
-void set_use_uto_option(void) {
-    use_uto_option = true;
-    /* Should read the value from a file ... */
-    ebpf_options_length_options_negotiation += 4;
-    ebpf_options_length += 4;
-    printf("Set_use_uto_option, ebpf_options_length: %u\n", ebpf_options_length);
-}
-
-void set_use_rto_option(void) {
-    use_rto_option = true;
-    /* Should read the value from a file ... */
-    ebpf_options_length_options_negotiation += 8;
-    ebpf_options_length += 8;
-}
-
-/* TODO: This function SHOULD be merged with the other one, but how do we know that we have to multiply the value by TCP_SLOW_INTERVAL? */
 int ebpf_should_drop_connection_rto(struct tcp_pcb *pcb) { /* u64_t time_waiting_unacked */
     printf("ebpf_should_drop_connection_rto\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/ebpf_should_drop_connection_rto.bpf";
-    /* LWIP_UNUSED_ARG(time_waiting_unacked); */
-    (pcb->cnx).current_plugin_name = "RTO_plugin"; /* TODO: modifier pour que ce soit dynamique... Liste de fonctions de timeout et voilà... */
     clock_t start = clock();
-    int ret =  run_ubpf_with_args(pcb, code_filename);// ,NULL);
+    if (!ebpf_drop_connection.filename) {
+        /* Default behaviour: do not drop */
+        return 0;
+    }
+    (pcb->cnx).current_plugin_name = ebpf_drop_connection.pluginName; /* TODO: modifier pour que ce soit dynamique... Liste de fonctions de timeout et voilà... */
+    int ret =  run_ubpf_with_args(pcb, ebpf_drop_connection.filename);// ,NULL);
     clock_t end = clock();
     printf("Time taken by ebpf_should_drop_connection_rto running: %fms\n", ((double) (end-start)) / CLOCKS_PER_SEC * 1000);
     return ret;
@@ -151,51 +137,19 @@ int ebpf_parse_tcp_option(struct tcp_pcb *pcb, u8_t opt) {
     return run_ubpf_with_args(pcb, code_filename); */
 }
 
-u32_t *ebpf_write_tcp_uto_option(struct tcp_pcb *pcb, u32_t *opts) { /* TODO: use VA_ARGS for passing multiple options to the ebpf function? */
-    /* TODO: for using this argument, we could have a thing like in QUIC (cf plugins/tlp/set_next_wake_time.c/set_next_wake_time)
-     *       This requires to cast in a new type (protoop_arg_t as in quic for ex) and to cast to the good type once in the plugin implementation
-     *       PROBLEM: dereferencing a pointer here... will not be able to access "opts"... how to solve this ? Should transmit in the VM's memory I guess...
-     *                but is that functional?...
-     */
-    printf("ebpf_write_tcp_uto_option\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/user_timeout/write_tcp_uto_option.bpf";
-    printf("ebpf_write_tcp_uto_option: Before calling run_ubpf_with_args, opts is at %p\n", opts);
-    (pcb->cnx).current_plugin_name = "UTO_plugin"; /* TODO: changer de façon générique, on devrait avoir une linked list de writers avec noms */
-    //return run_ubpf_with_args(pcb, code_filename, opts);
-
-    clock_t start = clock();
-    u32_t *ret =  run_ubpf_with_args(pcb, code_filename, opts);
-    clock_t end = clock();
-    printf("Time taken by ebpf_write_tcp_uto_option running: %fms\n", ((double) (end-start)) / CLOCKS_PER_SEC*1000);
-    return ret;
-}
-
-u32_t *ebpf_write_tcp_rto_option(struct tcp_pcb *pcb, u32_t *opts) {
-    printf("ebpf_write_tcp_rto_option\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/write_tcp_rto_option.bpf";
-    printf("ebpf_write_tcp_rto_option: Before calling run_ubpf_with_args, opts is at %p\n", opts);
-    (pcb->cnx).current_plugin_name = "RTO_plugin"; /* TODO: changer de façon générique, on devrait avoir une linked list de writers avec noms */
-    clock_t start = clock();
-    u32_t *ret =  run_ubpf_with_args(pcb, code_filename, opts);
-    clock_t end = clock();
-    printf("Time taken by ebpf_write_tcp_rto_option running: %fms\n", ((double) (end-start)) / CLOCKS_PER_SEC*1000);
-    return ret;
-}
-
 u32_t *ebpf_write_tcp_options(struct tcp_pcb *pcb, u32_t *opts) {
     if (!pcb) {
         return opts;
     }
-    printf("in write_tcp_options, opts: %p\n", opts);
-    if (use_uto_option) {
-        opts = ebpf_write_tcp_uto_option(pcb, opts);
-    } else {
-        printf("didn't call \n");
+    option_writer_node_t *head = ebpf_option_writers_list;
+    if (!head) {
+        // No option to write
+        return opts;
     }
-    if (use_rto_option) {
-        opts = ebpf_write_tcp_rto_option(pcb, opts);
-    } else {
-        printf("didn't call 2 \n");
+    while (head) {
+        (pcb->cnx).current_plugin_name = head->pluginName;
+        opts = run_ubpf_with_args(pcb, head->filename, opts);
+        head = head->next;
     }
     return opts;
 }
@@ -217,14 +171,24 @@ u8_t ebpf_get_options_length(struct tcp_pcb *pcb) {
 
 int ebpf_is_ack_needed(struct tcp_pcb *pcb) {
     printf("ebpf_is_ack_needed\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/delayed_ack/is_ack_needed.bpf";
-    return run_ubpf_with_args(pcb, code_filename);
+    if (!ebpf_delayed_ack.filename) {
+        /* Default behaviour: frequency = 1 ack / 2 */
+        return pcb->num_rcv_unacked > 2;
+    }
+    (pcb->cnx).current_plugin_name = ebpf_delayed_ack.pluginName;
+    return run_ubpf_with_args(pcb, ebpf_delayed_ack.filename);// ,NULL);
 }
 
 int ebpf_should_fast_retransmit(struct tcp_pcb *pcb) {
     printf("ebpf_should_fast_retransmit\n");
-    const char *code_filename = "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/thin_stream/should_fast_retransmit.bpf";
-    return run_ubpf_with_args(pcb, code_filename);
+    if (!ebpf_fast_retransmit.filename) {
+        /* Default behaviour */
+        return pcb->dupacks >= 3;
+    }
+    (pcb->cnx).current_plugin_name = ebpf_fast_retransmit.pluginName;
+    int ret = run_ubpf_with_args(pcb, ebpf_fast_retransmit.filename);// ,NULL);
+    printf("ebpf_should_fast_retransmit returned: %d\n", ret);
+    return ret;
 }
 
 uint64_t run_ubpf_args(struct tcp_pcb *pcb, const char *code_filename, int n_args, ...) {
@@ -490,6 +454,178 @@ register_functions(struct ubpf_vm *vm)
 
 
     ubpf_register(vm, 63, "membound_fail", membound_fail);
+}
+
+int register_pluglet_function(const char *insertion_point, const char *code_filename, const char *plugin_name, int n_args, ...) {
+    printf("WTFWTFregister_pluglet_function: number of args: %u\n", n_args);
+    printf("register_pluglet_function: inp: %s, code_filename: %s, pluginN: %s\n", insertion_point, code_filename, plugin_name);
+    int i;
+    va_list ap;
+    va_start(ap, n_args);
+    uint64_t args[n_args]; /* Cast everything to a uint64_t, thus able to contain pointers */
+    for (i = 0; i < n_args; ++i) {
+        args[i] = va_arg(ap, uint64_t);
+        printf("register_pluglet_function: Before calling the function, args[%d] is at %p and has value 0x%x\n", i, args[i], args[i]);
+    }
+    va_end(ap);
+
+    /* Now, compare the insertion point to other strings and run the designated register */
+    if (strcmp(insertion_point, "should_drop_connection") == 0) {
+        return ubpf_register_should_drop_connection(code_filename, plugin_name);
+    } else if (strcmp(insertion_point, "should_fast_retransmit") == 0) {
+        return ubpf_register_should_fast_retransmit(code_filename, plugin_name);
+    } else if (strcmp(insertion_point, "is_ack_needed") == 0) {
+        return ubpf_register_delayed_ack(code_filename, plugin_name);
+    } else if (strcmp(insertion_point, "tcp_option_writer") == 0) {
+        if (n_args < 1) {
+            printf("ERROR: for the tcp option writer, you should specify the length of the option.\n");
+            return -1; /* should contain option kind and exID */
+        }
+        printf("length received as uint: %u, as int :%d, as int casted: %d\n", args[0], args[0], (int)args[0]);
+        int length = (int) args[0];
+        return ubpf_register_tcp_option_writer(code_filename, plugin_name, length);
+    } else if (strcmp(insertion_point, "tcp_option_parser") == 0) {
+        if (n_args < 2) {
+            printf("ERROR: for the tcp option parser, you should specify an option kind and an exID.\n");
+            return -1; /* should contain option kind and exID */
+        }
+        u8_t option_kind = (u8_t) (args[0] & 0xff);
+        u16_t exID = (u16_t) (args[1] & 0xffff);
+        return ubpf_register_tcp_option_parser(code_filename, option_kind, exID, plugin_name);
+    } else {
+        printf("ERROR: no corresponding pluglet register function found.\n");
+        return -1;
+    }
+}
+
+int ubpf_register_should_drop_connection(const char *code_filename, const char *plugin_name) {
+    char *drop_connection_filename = malloc(strlen(code_filename) + 1);
+    if (!drop_connection_filename) {
+        printf("ERROR: Could not malloc drop_connection_filename in ubpf_register_should_drop_connection\n");
+        return -1;
+    }
+    strcpy(drop_connection_filename, code_filename);
+
+    char *pname = malloc(strlen(plugin_name) + 1);
+    if (!pname) {
+        printf("ERROR: Could not malloc pname in ubpf_register_should_drop_connection\n");
+        free(drop_connection_filename);
+        return -1;
+    }
+    strcpy(pname, plugin_name);
+
+    // delete previously registered pluglet, if any
+    if (ebpf_drop_connection.filename) {
+        free(ebpf_drop_connection.filename);
+    }
+    if (ebpf_drop_connection.pluginName) {
+        free(ebpf_drop_connection.pluginName);
+    }
+    ebpf_drop_connection.filename = drop_connection_filename;
+    ebpf_drop_connection.pluginName = pname;
+    return 0;
+}
+
+int ubpf_register_should_fast_retransmit(const char *code_filename, const char *plugin_name) {
+    char *fretransmit_filename = malloc(strlen(code_filename) + 1);
+    if (!fretransmit_filename) {
+        printf("ERROR: Could not malloc fretransmit_filename in ubpf_register_should_fast_retransmit\n");
+        return -1;
+    }
+    strcpy(fretransmit_filename, code_filename);
+
+    char *pname = malloc(strlen(plugin_name) + 1);
+    if (!pname) {
+        printf("ERROR: Could not malloc pname in ubpf_register_should_fast_retransmit\n");
+        free(fretransmit_filename);
+        return -1;
+    }
+    strcpy(pname, plugin_name);
+
+    // delete previously registered pluglet, if any
+    if (ebpf_fast_retransmit.filename) {
+        free(ebpf_fast_retransmit.filename);
+    }
+    if (ebpf_fast_retransmit.pluginName) {
+        free(ebpf_fast_retransmit.pluginName);
+    }
+    ebpf_fast_retransmit.filename = fretransmit_filename;
+    ebpf_fast_retransmit.pluginName = pname;
+    return 0;
+}
+
+int ubpf_register_delayed_ack(const char *code_filename, const char *plugin_name) {
+    char *dack_filename = malloc(strlen(code_filename) + 1);
+    if (!dack_filename) {
+        printf("ERROR: Could not malloc dack_filename in ubpf_register_delayed_ack\n");
+        return -1;
+    }
+    strcpy(dack_filename, code_filename);
+
+    char *pname = malloc(strlen(plugin_name) + 1);
+    if (!pname) {
+        printf("ERROR: Could not malloc pname in ubpf_register_delayed_ack\n");
+        free(dack_filename);
+        return -1;
+    }
+    strcpy(pname, plugin_name);
+
+    // delete previously registered pluglet, if any
+    if (ebpf_delayed_ack.filename) {
+        free(ebpf_delayed_ack.filename);
+    }
+    if (ebpf_delayed_ack.pluginName) {
+        free(ebpf_delayed_ack.pluginName);
+    }
+    ebpf_delayed_ack.filename = dack_filename;
+    ebpf_delayed_ack.pluginName = pname;
+    return 0;
+}
+
+int ubpf_register_tcp_option_writer(const char *code_filename, const char *plugin_name, int opt_len) {
+    // add a node to the writer list
+    option_writer_node_t *head = ebpf_option_writers_list;
+    option_writer_node_t *new_node;
+    new_node = malloc(sizeof(option_writer_node_t));
+    if (!new_node) {
+        printf("ERROR: Could not malloc option_writer_node_t in ubpf_register_tcp_option_writer\n");
+        return -1;
+    }
+    char *writer_filename = malloc(strlen(code_filename) + 1);
+    if (!writer_filename) {
+        printf("ERROR: Could not malloc writer_filename in ubpf_register_tcp_option_writer\n");
+        free(new_node);
+        return -1;
+    }
+    strcpy(writer_filename, code_filename);
+    new_node->filename = writer_filename;
+
+    char *pname = malloc(strlen(plugin_name) + 1);
+    if (!pname) {
+        printf("ERROR: Could not malloc pname in ubpf_register_tcp_option_writer\n");
+        free(writer_filename);
+        free(new_node);
+        return -1;
+    }
+    strcpy(pname, plugin_name);
+    new_node->pluginName = pname;
+    new_node->next = NULL;
+
+    // Place the new node
+    if (!head) {
+        ebpf_option_writers_list = new_node;
+    } else {
+        while (head->next) {
+            head = head->next;
+        }
+        head->next = new_node;
+    }
+    ebpf_options_length += opt_len;
+    /* authorizing options to be run only during the handshake is not totally done but easily feasible */
+    /* This would need having two distinct writer lists, and adding an argument to the register tcp option writer
+       to say when this option should run */
+    ebpf_options_length_options_negotiation += opt_len;
+    return 0;
 }
 
 int ubpf_register_tcp_option_parser(const char *code_filename, u8_t opt, u16_t exID, const char *plugin_name) {

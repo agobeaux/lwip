@@ -648,10 +648,10 @@ test_init(void * arg)
 static void
 main_loop(void)
 {
+  int ret;
 #if !NO_SYS
   err_t err;
   sys_sem_t init_sem;
-  int ret;
 #endif /* NO_SYS */
 #if USE_PPP
 #if !USE_ETHERNET
@@ -663,25 +663,57 @@ main_loop(void)
 
   /* First, initiliaze map and plugins so that the different PCBs will copy the right map */
   global_plugins_memory_map = init_plugin_memory_map();
-  add_plugin_memory(global_plugins_memory_map, "RTO_plugin", 1, true); /* Reserve one variable for the RTO plugin */
+  //add_plugin_memory(global_plugins_memory_map, "RTO_plugin", 1, true); /* Reserve one variable for the RTO plugin */
 
-  /* Plugins used */
-  /*set_use_uto_option();*/
-  set_use_rto_option();
+  /* Register Delayed ACKs */
+  /*ret = register_pluglet(
+    "is_ack_needed",
+    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/delayed_ack/is_ack_needed.bpf",
+    "Dack_plugin"
+  );*/
 
-  ret = ubpf_register_tcp_option_parser(
+  /* Register Thin-stream plugin (should_fast_retransmit) */
+  /*ret = register_pluglet(
+    "should_fast_retransmit",
+    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/thin_stream/should_fast_retransmit.bpf",
+    "Thin_stream_plugin"
+  );*/
+
+
+  /* Register UTO writer and parser */
+  ret = register_pluglet(
+    "tcp_option_writer",
+    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/user_timeout/write_tcp_uto_option.bpf",
+    "UTO_plugin",
+    4
+  );
+  ret = register_pluglet(
+    "tcp_option_parser",
     "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/user_timeout/parse_tcp_uto_option.bpf",
+    "UTO_plugin",
     28,
-    0, /* useless param here */
-    "UTO_plugin"
+    0 /* useless param here */
   );
-  
-  ret = ubpf_register_tcp_option_parser(
+
+  /* Register RTO writer, parser, and connection_dropper */
+  /*ret = register_pluglet(
+    "tcp_option_writer",
+    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/write_tcp_rto_option.bpf",
+    "RTO_plugin",
+    8
+  );
+  ret = register_pluglet(
+    "tcp_option_parser",
     "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/parse_tcp_rto_option.bpf",
+    "RTO_plugin",
     253,
-    134,
-    "RTO_plugin"
+    134
   );
+  ret = register_pluglet(
+    "should_drop_connection",
+    "/home/agobeaux/Desktop/M2Q1/MASTER_THESIS/VM_folder/lwip_programs/externals/lwip/ubpf/plugins/retransmission_timeout/ebpf_should_drop_connection_rto.bpf",
+    "RTO_plugin"
+  );*/
 
 
   /* initialize lwIP stack, network interfaces and applications */
